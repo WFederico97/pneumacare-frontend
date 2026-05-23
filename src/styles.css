@@ -1,1 +1,25 @@
-/* You can add global styles to this file, and also import other style files */
+/* Import Tailwind CSS v4 */
+@import "tailwindcss";
+
+/*
+ * Force dark mode unconditionally.
+ * The .dark class is applied to <html> in index.html, which means every
+ * dark: utility is always active — no OS-level preference required.
+ * This satisfies the ICU low-light environment requirement.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Base layer: dark-first defaults so unstyled elements never flash white */
+@layer base {
+  html {
+    @apply bg-slate-950 text-slate-100 antialiased;
+  }
+
+  body {
+    @apply bg-slate-950;
+  }
+
+  * {
+    @apply box-border;
+  }
+}
