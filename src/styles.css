@@ -2,24 +2,38 @@
 @import "tailwindcss";
 
 /*
+ * Tell Tailwind v4 where to scan for utility class usage.
+ * Angular's esbuild pipeline processes CSS in isolation, so auto-detection
+ * cannot find template files. Paths are relative to this file (src/styles.css).
+ */
+@source "./app/**/*.{ts,html}";
+@source "./main.ts";
+
+/*
  * Force dark mode unconditionally.
  * The .dark class is applied to <html> in index.html, which means every
  * dark: utility is always active — no OS-level preference required.
- * This satisfies the ICU low-light environment requirement.
  */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Base layer: dark-first defaults so unstyled elements never flash white */
+/*
+ * Base layer: dark-first defaults.
+ * Use CSS custom properties from the Tailwind v4 theme instead of @apply,
+ * which is unreliable in user-authored @layer blocks in Tailwind v4.
+ */
 @layer base {
   html {
-    @apply bg-slate-950 text-slate-100 antialiased;
+    background-color: var(--color-slate-950);
+    color: var(--color-slate-100);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-slate-950;
+    background-color: var(--color-slate-950);
   }
 
   * {
-    @apply box-border;
+    box-sizing: border-box;
   }
 }
