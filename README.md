@@ -76,7 +76,7 @@ npm run build       # ng build
 npm run watch       # ng build --watch --configuration development
 ```
 
-No test runner is configured (`skipTests: true` everywhere). The compilation and Angular template type-check that run during `npm run build` serve as the quality gate.
+`npm test` is currently not wired up (it maps to `ng test`, but no Angular `test` target is configured because `skipTests: true` was used). The compilation and Angular template type-check that run during `npm run build` serve as the quality gate.
 
 ---
 
