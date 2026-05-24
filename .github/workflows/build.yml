@@ -1,0 +1,53 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+# Cancel in-flight runs for the same branch/PR to avoid wasting runner minutes.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Install, Compile & Bundle
+    runs-on: ubuntu-latest
+    # AC: pipeline must complete within 5 minutes.
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Node 22 is required by npm@11.7.0 (pinned in package.json#packageManager).
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # Clean, reproducible install using package-lock.json.
+      # Any resolution conflict exits non-zero and fails the run immediately.
+      - name: Install dependencies
+        run: npm ci
+
+      # `ng build` (production configuration):
+      #   • TypeScript compilation — any type error aborts with exit code 1
+      #   • Angular template type-checking (strictTemplates: true)
+      #   • Bundle budget enforcement — error threshold 2 MB; violation exits non-zero
+      # No test runner is configured in this project (skipTests: true everywhere).
+      # The compilation + budget gate serves as the automated quality barrier.
+      - name: Build (production)
+        run: npm run build
+
+      # Upload the compiled bundle as an artifact for inspection / downstream jobs.
+      - name: Upload build artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ github.run_id }}
+          path: dist/pneumacare-frontend/browser/
+          retention-days: 7
