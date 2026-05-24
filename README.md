@@ -102,11 +102,11 @@ Two-stage build:
 - `npm ci` — clean, reproducible dependency install from `package-lock.json`
 - `npm run build` — TypeScript compilation + Angular template check + production bundle
 
-**Stage 2 — Serve** (`nginx:alpine`):
+**Stage 2 — Serve** (`nginxinc/nginx-unprivileged:alpine`):
 - Copies `dist/pneumacare-frontend/browser/` to `/usr/share/nginx/html`
 - Uses `nginx.conf` for Angular SPA routing (`try_files $uri $uri/ /index.html`), gzip, security headers, and long-lived cache for hashed assets
 
-The container runs as the default nginx user (non-root in recent alpine images) and exposes port `80`.
+The container runs as a non-root nginx user and exposes port `8080`.
 
 ---
 

@@ -12,9 +12,9 @@ services:
       dockerfile: Dockerfile
     container_name: pneumacare-frontend
     ports:
-      - '4200:80'
+      - '4200:8080'
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:80 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
