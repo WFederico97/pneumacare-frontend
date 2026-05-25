@@ -1,11 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { HealthService } from '../core/services/health.service';
 import { HealthStatusData } from '../core/models/health.model';
 
 @Component({
   selector: 'app-home',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   templateUrl: './home.html',
   styleUrl: './home.css',
   host: { class: 'block' }

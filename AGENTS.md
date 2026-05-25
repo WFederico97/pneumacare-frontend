@@ -207,5 +207,16 @@ This means the frontend **never hardcodes the backend URL** in source. Always us
 
 ## CI
 
-No CI workflow exists yet for this repository. Add `.github/workflows/ci.yml` when needed.
-The backend CI at `github.com/WFederico97/pneumacare` can serve as a reference.
+Two workflow files are configured in `.github/workflows/`:
+
+| File | Trigger | Purpose |
+|---|---|---|
+| `build.yml` | push / PR → `main`, `develop` | `npm ci` + `npm run build` (production). TypeScript errors, template errors, or budget violations exit non-zero and block merge. `timeout-minutes: 5`. |
+| `sast.yml` | push / PR → `main`, `develop` + weekly schedule | CodeQL TypeScript/JavaScript analysis (`security-and-quality` queries) + dependency review on PRs (blocks HIGH/CRITICAL CVEs). |
+
+No GitHub Secrets are required — `GITHUB_TOKEN` is sufficient for both workflows.
+
+To run the same checks locally:
+```bash
+npm ci && npm run build   # mirrors the build.yml check
+```

@@ -1,0 +1,80 @@
+name: SAST
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  # Weekly full scan on Monday at 02:00 UTC to catch newly-disclosed CVEs.
+  schedule:
+    - cron: '0 2 * * 1'
+
+# Cancel in-flight scans for the same branch/PR.
+concurrency:
+  group: sast-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  codeql:
+    name: CodeQL Analysis (TypeScript / JavaScript)
+    runs-on: ubuntu-latest
+    # Required permissions for uploading SARIF results to the Security tab.
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # Install dependencies so CodeQL can resolve imports during analysis.
+      - name: Install dependencies
+        run: npm ci
+
+      # Initialise the CodeQL database for JavaScript/TypeScript.
+      # Angular TypeScript source is analysed as JavaScript by CodeQL.
+      # 'security-and-quality' adds both security-extended queries and
+      # code-quality rules on top of the default security set.
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-and-quality
+
+      # For JavaScript/TypeScript CodeQL performs its own build tracing —
+      # no explicit build step is required.
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      # Upload SARIF to GitHub Advanced Security / Security tab.
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript"
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    # Only runs on pull requests — checks new/changed dependencies for known CVEs.
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail the PR if any dependency introduces a vulnerability rated HIGH or CRITICAL.
+          fail-on-severity: high
+          comment-summary-in-pr: always
