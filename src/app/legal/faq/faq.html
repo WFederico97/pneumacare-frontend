@@ -1,0 +1,111 @@
+<div class="min-h-screen bg-slate-950 px-4 py-12">
+  <div class="mx-auto max-w-3xl">
+
+    <!-- Back navigation -->
+    <nav aria-label="Navegación de retorno" class="mb-8">
+      <a routerLink="/"
+         class="inline-flex items-center gap-2 text-sm text-slate-400
+                hover:text-cyan-400 transition-colors focus-visible:outline-none
+                focus-visible:ring-2 focus-visible:ring-cyan-400 rounded">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/>
+        </svg>
+        Volver al inicio
+      </a>
+    </nav>
+
+    <article>
+      <header class="mb-10">
+        <h1 class="text-3xl font-bold tracking-tight text-white">
+          Preguntas Frecuentes
+        </h1>
+        <p class="mt-2 text-sm text-slate-400">
+          Respuestas sobre el uso del sistema PneumaCare.
+        </p>
+      </header>
+
+      <!-- Accordion list -->
+      <dl class="space-y-2">
+
+        @for (item of items; track item.question; let i = $index) {
+          <div class="rounded-xl bg-slate-900 border border-slate-800 overflow-hidden">
+
+            <!-- Question trigger -->
+            <dt>
+              <button
+                type="button"
+                [id]="'faq-btn-' + i"
+                [attr.aria-expanded]="openIndex() === i"
+                [attr.aria-controls]="'faq-panel-' + i"
+                (click)="toggle(i)"
+                class="w-full flex items-center justify-between gap-4 px-6 py-4
+                       text-left text-sm font-medium text-slate-100
+                       hover:bg-slate-800/60 transition-colors
+                       focus-visible:outline-none focus-visible:ring-2
+                       focus-visible:ring-inset focus-visible:ring-cyan-400">
+                <span>{{ item.question }}</span>
+                <!-- Chevron icon -->
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200"
+                     [class.rotate-180]="openIndex() === i"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true">
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+              </button>
+            </dt>
+
+            <!-- Answer panel -->
+            @if (openIndex() === i) {
+              <dd
+                [id]="'faq-panel-' + i"
+                [attr.aria-labelledby]="'faq-btn-' + i"
+                role="region"
+                class="px-6 pb-5 text-sm text-slate-300 leading-relaxed
+                       border-t border-slate-800 pt-4">
+                {{ item.answer }}
+              </dd>
+            }
+
+          </div>
+        }
+
+      </dl>
+    </article>
+
+    <!-- Page footer -->
+    <footer class="mt-16 pt-8 border-t border-slate-800" role="contentinfo">
+      <nav aria-label="Páginas del sitio">
+        <ul class="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          <li>
+            <a routerLink="/"
+               class="text-slate-400 hover:text-cyan-400 transition-colors
+                      focus-visible:outline-none focus-visible:ring-2
+                      focus-visible:ring-cyan-400 rounded">
+              Inicio
+            </a>
+          </li>
+          <li>
+            <a routerLink="/terms"
+               class="text-slate-400 hover:text-cyan-400 transition-colors
+                      focus-visible:outline-none focus-visible:ring-2
+                      focus-visible:ring-cyan-400 rounded">
+              Términos y Condiciones
+            </a>
+          </li>
+          <li>
+            <a routerLink="/faq"
+               class="text-cyan-400 font-medium"
+               aria-current="page">
+              Preguntas Frecuentes
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </footer>
+
+  </div>
+</div>
