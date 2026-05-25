@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { Home } from './home/home';
 
 export const routes: Routes = [
-  { path: '', component: Home, title: 'PneumaCare' },
+  { path: '', component: Home, title: 'PneumaCare', pathMatch: 'full' },
   {
     path: '',
     loadChildren: () =>
