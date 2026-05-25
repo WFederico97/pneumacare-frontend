@@ -101,8 +101,31 @@
   </div>
 
   <!-- ── Footer ─────────────────────────────────────────────────────────── -->
-  <p class="mt-10 text-xs text-slate-700 tracking-widest uppercase">
-    v0.0.1 &nbsp;·&nbsp; TUP ICU System
-  </p>
+  <footer class="mt-10 flex flex-col items-center gap-3" role="contentinfo">
+    <p class="text-xs text-slate-700 tracking-widest uppercase">
+      v0.0.1 &nbsp;·&nbsp; TUP ICU System
+    </p>
+    <nav aria-label="Páginas legales">
+      <ul class="flex gap-4 text-xs">
+        <li>
+          <a routerLink="/terms"
+             class="text-slate-500 hover:text-cyan-400 transition-colors
+                    focus-visible:outline-none focus-visible:ring-2
+                    focus-visible:ring-cyan-400 rounded">
+            Términos y Condiciones
+          </a>
+        </li>
+        <li aria-hidden="true" class="text-slate-700">·</li>
+        <li>
+          <a routerLink="/faq"
+             class="text-slate-500 hover:text-cyan-400 transition-colors
+                    focus-visible:outline-none focus-visible:ring-2
+                    focus-visible:ring-cyan-400 rounded">
+            Preguntas Frecuentes
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </footer>
 
 </main>
