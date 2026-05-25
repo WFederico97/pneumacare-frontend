@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Node 22 is required by npm@11.7.0 (pinned in package.json#packageManager).
       - name: Set up Node 22
