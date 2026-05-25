@@ -8,11 +8,11 @@ export class HealthService {
   private readonly http = inject(HttpClient);
 
   /**
-   * Calls GET /api/health.
+   * Calls GET /api/v1/health.
    * In development the proxy (proxy.conf.json) forwards this to
-   * http://localhost:8080/api/health automatically.
+   * http://localhost:8080/api/v1/health automatically.
    */
   getHealth(): Observable<HealthApiResponse> {
-    return this.http.get<HealthApiResponse>('/api/health');
+    return this.http.get<HealthApiResponse>('/api/v1/health');
   }
 }
