@@ -10,7 +10,22 @@
       </div>
 
       <div class="lg:col-span-2">
-        <app-detail-panel [selectedBedId]="selectedBedId()" />
+        @if (selectedBedId()) {
+          <div class="mb-3 flex justify-end">
+            <button
+              type="button"
+              (click)="clearSelectedBed()"
+              class="rounded-md border border-slate-600 px-2.5 py-1 text-xs font-medium text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300"
+            >
+              Deseleccionar cama
+            </button>
+          </div>
+          <app-detail-panel [selectedBedId]="selectedBedId()" />
+        } @else {
+          <section class="rounded-2xl border border-slate-700/60 bg-slate-900/80 p-5 text-sm text-slate-300">
+            Selecciona una cama disponible para mostrar las acciones rápidas.
+          </section>
+        }
       </div>
     </section>
 
