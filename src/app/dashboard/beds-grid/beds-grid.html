@@ -1,0 +1,58 @@
+@if (!hasBeds()) {
+  <section
+    class="rounded-2xl border border-slate-700 bg-slate-900/80 p-8 text-center"
+    aria-live="polite"
+  >
+    <p class="text-sm font-medium text-slate-200">No hay camas para mostrar</p>
+    <p class="mt-2 text-xs text-slate-400">
+      Cuando el servicio registre camas en tu UCI, aparecerán aquí.
+    </p>
+  </section>
+} @else {
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" aria-label="Grilla de camas UCI">
+    @for (bed of beds(); track bed.bedId) {
+      <article class="rounded-2xl ring-1 shadow-lg transition-colors" [class]="cardClasses(bed.status)">
+        @if (bed.status === 'AVAILABLE') {
+          <button
+            type="button"
+            class="w-full rounded-2xl p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/90"
+            (click)="onBedClick(bed)"
+            [attr.aria-label]="'Admitir paciente en ' + bed.bedNumber"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="text-xl font-bold tracking-wide">{{ bed.bedNumber }}</h3>
+              <span
+                class="rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide"
+                [class]="badgeClasses(bed.status)"
+              >
+                {{ statusLabel(bed.status) }}
+              </span>
+            </div>
+            <p class="mt-3 text-xs font-medium text-white/85">
+              Haz clic para iniciar admisión
+            </p>
+          </button>
+        } @else {
+          <div class="w-full rounded-2xl p-5" aria-readonly="true">
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="text-xl font-bold tracking-wide">{{ bed.bedNumber }}</h3>
+              <span
+                class="rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide"
+                [class]="badgeClasses(bed.status)"
+              >
+                {{ statusLabel(bed.status) }}
+              </span>
+            </div>
+            <p class="mt-3 text-xs font-medium text-white/85">
+              @if (bed.status === 'OCCUPIED') {
+                Cama ocupada
+              } @else {
+                En mantenimiento
+              }
+            </p>
+          </div>
+        }
+      </article>
+    }
+  </section>
+}
