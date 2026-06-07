@@ -9,8 +9,10 @@ export interface IcuBed {
 }
 
 export interface IcuBedApiItem {
+  bedId: string;
   bedNumber: string;
   status: IcuBedStatus;
 }
 
 export type IcuBedsApiResponse = ApiResponse<IcuBedApiItem[]>;
+export type CreateIcuBedApiResponse = ApiResponse<IcuBedApiItem>;
