@@ -32,6 +32,26 @@
               Haz clic para iniciar admisión
             </p>
           </button>
+        } @else if (bed.status === 'OCCUPIED') {
+          <button
+            type="button"
+            class="w-full rounded-2xl p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/90"
+            (click)="onBedClick(bed)"
+            [attr.aria-label]="'Ver acciones de cama ' + bed.bedNumber"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <h3 class="text-xl font-bold tracking-wide">{{ bed.bedNumber }}</h3>
+              <span
+                class="rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide"
+                [class]="badgeClasses(bed.status)"
+              >
+                {{ statusLabel(bed.status) }}
+              </span>
+            </div>
+            <p class="mt-3 text-xs font-medium text-white/85">
+              Haz clic para ver acciones rápidas
+            </p>
+          </button>
         } @else {
           <div class="w-full rounded-2xl p-5" aria-readonly="true">
             <div class="flex items-center justify-between gap-3">
@@ -43,13 +63,7 @@
                 {{ statusLabel(bed.status) }}
               </span>
             </div>
-            <p class="mt-3 text-xs font-medium text-white/85">
-              @if (bed.status === 'OCCUPIED') {
-                Cama ocupada
-              } @else {
-                En mantenimiento
-              }
-            </p>
+            <p class="mt-3 text-xs font-medium text-white/85">En mantenimiento</p>
           </div>
         }
       </article>

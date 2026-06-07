@@ -11,13 +11,13 @@ import { IcuBed, IcuBedStatus } from '../../core/models/icu-bed.model';
 export class BedsGrid {
   readonly beds = input.required<IcuBed[]>();
 
-  readonly bedSelected = output<string>();
+  readonly bedSelected = output<IcuBed>();
 
   readonly hasBeds = computed(() => this.beds().length > 0);
 
   onBedClick(bed: IcuBed): void {
-    if (bed.status === 'AVAILABLE') {
-      this.bedSelected.emit(bed.bedId);
+    if (bed.status === 'AVAILABLE' || bed.status === 'OCCUPIED') {
+      this.bedSelected.emit(bed);
     }
   }
 
