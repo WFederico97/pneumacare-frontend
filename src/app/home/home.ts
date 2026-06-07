@@ -18,4 +18,8 @@ export class Home {
   handleBedSelected(bedId: string): void {
     this.selectedBedId.set(bedId);
   }
+
+  clearSelectedBed(): void {
+    this.selectedBedId.set(null);
+  }
 }

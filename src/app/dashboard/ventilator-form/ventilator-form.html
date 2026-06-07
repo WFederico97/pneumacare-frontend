@@ -1,4 +1,14 @@
 <form [formGroup]="form" class="space-y-4" novalidate>
+  @if (!hasSelectedBed()) {
+    <div class="rounded-lg border border-slate-700 bg-slate-950/40 p-3 text-xs text-slate-400">
+      Selecciona una cama para habilitar el formulario.
+    </div>
+  } @else {
+    <div class="rounded-lg border border-cyan-500/30 bg-cyan-950/20 p-3 text-xs text-cyan-100">
+      Cama activa: <span class="font-mono font-semibold">{{ selectedBedId() }}</span>
+    </div>
+  }
+
   <div>
     <label for="brand" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">
       Marca de ventilador

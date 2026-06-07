@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 type VentilatorBrand = 'TECME' | 'NEUMOVENT';
@@ -12,6 +12,9 @@ type VentilatorBrand = 'TECME' | 'NEUMOVENT';
 })
 export class VentilatorForm implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
+  readonly selectedBedId = input<string | null>(null);
+
+  private lastBedId: string | null = null;
 
   readonly brandOptions: readonly VentilatorBrand[] = ['TECME', 'NEUMOVENT'];
   readonly selectedBrand = signal<VentilatorBrand>('TECME');
@@ -34,13 +37,38 @@ export class VentilatorForm implements OnInit {
     inspTime: this.formBuilder.control<number | null>(null),
   });
 
+  constructor() {
+    effect(() => {
+      const currentBedId = this.selectedBedId();
+
+      if (!currentBedId) {
+        this.form.disable({ emitEvent: false });
+        this.resetClinicalFields();
+        this.lastBedId = null;
+        return;
+      }
+
+      this.form.enable({ emitEvent: false });
+
+      if (this.lastBedId !== currentBedId) {
+        this.resetClinicalFields();
+        this.lastBedId = currentBedId;
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.applyBrandRules(this.form.controls.brand.value);
 
     this.form.controls.brand.valueChanges.subscribe(brand => {
       this.selectedBrand.set(brand);
       this.applyBrandRules(brand);
+      this.resetClinicalFields();
     });
+  }
+
+  hasSelectedBed(): boolean {
+    return this.selectedBedId() !== null;
   }
 
   private applyBrandRules(brand: VentilatorBrand): void {
@@ -60,5 +88,30 @@ export class VentilatorForm implements OnInit {
 
     triggerFlowControl.updateValueAndValidity();
     inspTimeControl.updateValueAndValidity();
+  }
+
+  private resetClinicalFields(): void {
+    this.form.patchValue(
+      {
+        f: null,
+        vt: null,
+        peep: null,
+        triggerFlow: null,
+        inspTime: null,
+      },
+      { emitEvent: false }
+    );
+
+    this.form.controls.f.markAsPristine();
+    this.form.controls.vt.markAsPristine();
+    this.form.controls.peep.markAsPristine();
+    this.form.controls.triggerFlow.markAsPristine();
+    this.form.controls.inspTime.markAsPristine();
+
+    this.form.controls.f.markAsUntouched();
+    this.form.controls.vt.markAsUntouched();
+    this.form.controls.peep.markAsUntouched();
+    this.form.controls.triggerFlow.markAsUntouched();
+    this.form.controls.inspTime.markAsUntouched();
   }
 }
