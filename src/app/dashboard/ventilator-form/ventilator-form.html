@@ -1,0 +1,86 @@
+<form [formGroup]="form" class="space-y-4" novalidate>
+  <div>
+    <label for="brand" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+      Marca de ventilador
+    </label>
+    <select
+      id="brand"
+      formControlName="brand"
+      class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+    >
+      @for (brand of brandOptions; track brand) {
+        <option [value]="brand">{{ brand }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div>
+      <label for="f" class="mb-1 block text-xs font-medium text-slate-300">Frecuencia respiratoria (f)</label>
+      <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <input
+          id="f"
+          type="number"
+          formControlName="f"
+          class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+        >
+        <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">rpm</span>
+      </div>
+    </div>
+
+    <div>
+      <label for="vt" class="mb-1 block text-xs font-medium text-slate-300">Volumen corriente (vt)</label>
+      <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <input
+          id="vt"
+          type="number"
+          formControlName="vt"
+          class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+        >
+        <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">mL</span>
+      </div>
+    </div>
+
+    <div>
+      <label for="peep" class="mb-1 block text-xs font-medium text-slate-300">PEEP</label>
+      <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <input
+          id="peep"
+          type="number"
+          formControlName="peep"
+          class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+        >
+        <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">cmH2O</span>
+      </div>
+    </div>
+  </div>
+
+  @if (selectedBrand() === 'TECME') {
+    <div>
+      <label for="triggerFlow" class="mb-1 block text-xs font-medium text-slate-300">Trigger por flujo</label>
+      <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <input
+          id="triggerFlow"
+          type="number"
+          formControlName="triggerFlow"
+          class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+        >
+        <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">L/min</span>
+      </div>
+    </div>
+  } @else {
+    <div>
+      <label for="inspTime" class="mb-1 block text-xs font-medium text-slate-300">Tiempo inspiratorio</label>
+      <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <input
+          id="inspTime"
+          type="number"
+          step="0.1"
+          formControlName="inspTime"
+          class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+        >
+        <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">s</span>
+      </div>
+    </div>
+  }
+</form>
