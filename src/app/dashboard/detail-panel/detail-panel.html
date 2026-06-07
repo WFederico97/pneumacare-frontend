@@ -2,7 +2,7 @@
   <div class="flex items-start justify-between gap-3">
     <div>
       <h2 class="text-base font-semibold tracking-tight text-slate-100">Acciones rápidas</h2>
-      <p class="text-xs text-slate-400">Admisión y calculadoras para la cama seleccionada</p>
+      <p class="text-xs text-slate-400">Calculadoras para la cama ocupada</p>
     </div>
     <span class="rounded-full border border-red-500/40 bg-red-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-red-300">
       Atención prioritaria
@@ -11,18 +11,18 @@
 
   <div class="mt-5 space-y-4">
     <div class="rounded-xl border border-cyan-500/30 bg-cyan-950/30 p-4">
-      @if (selectedBedId()) {
+      @if (selectedBedNumber()) {
         <p class="text-xs text-cyan-200">Cama seleccionada</p>
-        <p class="mt-1 font-mono text-lg font-semibold text-cyan-100">{{ selectedBedId() }}</p>
-        <p class="mt-2 text-xs text-cyan-200/85">Haz clic en "Iniciar admisión" para abrir el modal.</p>
+        <p class="mt-1 text-lg font-semibold text-cyan-100">{{ selectedBedNumber() }}</p>
+        <p class="mt-2 text-xs text-cyan-200/85">Paciente actualmente internado.</p>
       } @else {
-        <p class="text-sm text-cyan-100">Selecciona una cama disponible para comenzar.</p>
+        <p class="text-sm text-cyan-100">Selecciona una cama ocupada para comenzar.</p>
       }
     </div>
 
     <div class="rounded-xl border border-slate-700 bg-slate-950/40 p-4">
       <p class="mb-3 text-xs uppercase tracking-wide text-slate-400">Formulario ventilatorio</p>
-      <app-ventilator-form [selectedBedId]="selectedBedId()" />
+      <app-ventilator-form [selectedBedId]="selectedBedId()" [selectedBedNumber]="selectedBedNumber()" />
     </div>
   </div>
 </section>

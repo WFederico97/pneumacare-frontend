@@ -13,6 +13,7 @@ type VentilatorBrand = 'TECME' | 'NEUMOVENT';
 export class VentilatorForm implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   readonly selectedBedId = input<string | null>(null);
+  readonly selectedBedNumber = input<string | null>(null);
 
   private lastBedId: string | null = null;
 

@@ -1,0 +1,74 @@
+<main class="min-h-screen bg-slate-950">
+  <app-dashboard-sidebar />
+
+  <div class="ml-20 flex min-h-screen flex-col">
+    <app-dashboard-navbar />
+
+    <section class="mx-auto w-full max-w-3xl px-6 py-8">
+      <div class="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-semibold text-slate-100">Nueva cama UCI</h1>
+          <p class="mt-1 text-sm text-slate-400">Registra una cama para la UCI asociada a tu sesión.</p>
+        </div>
+        <a
+          routerLink="/"
+          class="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300"
+        >
+          Volver al tablero
+        </a>
+      </div>
+
+      <section class="rounded-2xl border border-slate-700/70 bg-slate-900/80 p-6 shadow-xl">
+        <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-4">
+          <div>
+            <label for="bedNumber" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Nombre o número de cama
+            </label>
+            <input
+              id="bedNumber"
+              type="text"
+              formControlName="bedNumber"
+              placeholder="Ej: BED-004"
+              class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+            >
+            @if (isInvalidBedNumber()) {
+              <p class="mt-2 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+                @if (form.controls.bedNumber.errors?.['required']) {
+                  El número de cama es obligatorio.
+                } @else if (form.controls.bedNumber.errors?.['maxlength']) {
+                  El número de cama no debe superar 50 caracteres.
+                } @else {
+                  Valor inválido.
+                }
+              </p>
+            }
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="form.invalid || isSubmitting()"
+            class="w-full rounded-lg border border-cyan-500/70 bg-cyan-700 px-3 py-2 text-sm font-semibold text-cyan-50 transition-colors enabled:hover:bg-cyan-600 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
+          >
+            @if (isSubmitting()) {
+              Guardando...
+            } @else {
+              Crear cama
+            }
+          </button>
+        </form>
+
+        @if (submitError()) {
+          <p class="mt-4 rounded-md border border-red-500/70 bg-red-950/60 px-3 py-2 text-sm text-red-100">
+            {{ submitError() }}
+          </p>
+        }
+
+        @if (createdBed()) {
+          <p class="mt-4 rounded-md border border-emerald-500/70 bg-emerald-950/50 px-3 py-2 text-sm text-emerald-100">
+            Cama {{ createdBed()?.bedNumber }} creada con estado {{ createdBed()?.status }}.
+          </p>
+        }
+      </section>
+    </section>
+  </div>
+</main>
