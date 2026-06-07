@@ -1,41 +1,21 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { HealthService } from '../core/services/health.service';
-import { HealthStatusData } from '../core/models/health.model';
+import { Navbar } from '../dashboard/navbar/navbar';
+import { Sidebar } from '../dashboard/sidebar/sidebar';
+import { BedsDashboard } from '../dashboard/beds-dashboard/beds-dashboard';
+import { DetailPanel } from '../dashboard/detail-panel/detail-panel';
 
 @Component({
   selector: 'app-home',
-  imports: [DatePipe, RouterLink],
+  imports: [RouterLink, Navbar, Sidebar, BedsDashboard, DetailPanel],
   templateUrl: './home.html',
   styleUrl: './home.css',
   host: { class: 'block' }
 })
-export class Home implements OnInit {
-  private readonly healthService = inject(HealthService);
+export class Home {
+  readonly selectedBedId = signal<string | null>(null);
 
-  readonly healthData   = signal<HealthStatusData | null>(null);
-  readonly isLoading    = signal(true);
-  readonly hasError     = signal(false);
-
-  ngOnInit(): void {
-    this.checkHealth();
-  }
-
-  checkHealth(): void {
-    this.isLoading.set(true);
-    this.hasError.set(false);
-    this.healthData.set(null);
-
-    this.healthService.getHealth().subscribe({
-      next: (response) => {
-        this.healthData.set(response.data);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.hasError.set(true);
-        this.isLoading.set(false);
-      }
-    });
+  handleBedSelected(bedId: string): void {
+    this.selectedBedId.set(bedId);
   }
 }
