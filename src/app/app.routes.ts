@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { Home } from './home/home';
 import { authGuard } from './core/guards/auth.guard';
+import { BedsCreate } from './beds-create/beds-create';
 
 export const routes: Routes = [
   {
@@ -8,6 +9,12 @@ export const routes: Routes = [
     component: Home,
     title: 'PneumaCare',
     pathMatch: 'full',
+    canActivate: [authGuard],
+  },
+  {
+    path: 'beds/new',
+    component: BedsCreate,
+    title: 'Nueva cama | PneumaCare',
     canActivate: [authGuard],
   },
   {
