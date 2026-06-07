@@ -6,11 +6,14 @@
 
     <section class="grid flex-1 gap-6 p-6 lg:grid-cols-5">
       <div class="lg:col-span-3">
-        <app-beds-dashboard (bedSelected)="handleBedSelected($event)" />
+        <app-beds-dashboard
+          [admittedBedId]="admittedBedId()"
+          (bedSelected)="handleBedSelected($event)"
+        />
       </div>
 
       <div class="lg:col-span-2">
-        @if (selectedBedId()) {
+        @if (selectedBed()?.status === 'OCCUPIED') {
           <div class="mb-3 flex justify-end">
             <button
               type="button"
@@ -20,10 +23,13 @@
               Deseleccionar cama
             </button>
           </div>
-          <app-detail-panel [selectedBedId]="selectedBedId()" />
+          <app-detail-panel
+            [selectedBedId]="selectedBed()?.bedId ?? null"
+            [selectedBedNumber]="selectedBed()?.bedNumber ?? null"
+          />
         } @else {
           <section class="rounded-2xl border border-slate-700/60 bg-slate-900/80 p-5 text-sm text-slate-300">
-            Selecciona una cama disponible para mostrar las acciones rápidas.
+            Selecciona una cama ocupada para mostrar las acciones rápidas.
           </section>
         }
       </div>
@@ -56,4 +62,18 @@
       </nav>
     </footer>
   </div>
+
+  @if (isAdmissionModalOpen()) {
+    <app-admission-modal
+      [selectedBed]="selectedBed()"
+      (close)="closeAdmissionModal()"
+      (admitted)="handlePatientAdmitted($event)"
+    />
+  }
+
+  @if (toastMessage()) {
+    <div class="fixed bottom-5 right-5 z-50 rounded-lg border border-emerald-500/70 bg-emerald-950/80 px-4 py-2 text-sm font-medium text-emerald-100 shadow-lg">
+      {{ toastMessage() }}
+    </div>
+  }
 </main>
