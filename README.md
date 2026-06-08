@@ -11,6 +11,7 @@
 ## Table of Contents
 
 - [Stack](#stack)
+- [Features](#features)
 - [Project Structure](#project-structure)
 - [Developer Commands](#developer-commands)
 - [Docker Compose](#docker-compose)
@@ -38,24 +39,52 @@
 
 ---
 
+## Features
+
+The UI implements the core end-to-end clinical workflow against the backend API:
+
+| Feature | Where | Backend endpoint |
+|---|---|---|
+| **Visualize ICU bed status** | `dashboard/beds-dashboard`, `beds-grid` | `GET /api/v1/icu-beds` |
+| **Create a bed** | `beds-create` (`/beds/new`) | `POST /api/v1/icu-beds` |
+| **Admit a patient** (PII-safe) | `dashboard/admission-modal` | `POST /api/v1/patients`, `GET /api/v1/identifier-types` |
+| **Submit a respiratory evaluation** | `dashboard/ventilator-form` | `POST /api/v1/evaluations` |
+| **Bed / patient detail** | `dashboard/detail-panel` | `GET /api/v1/patients/{id}` |
+| **Backend health indicator** | `dashboard/backend-service-card` | `GET /api/health` |
+
+Routes are guarded by `core/guards/auth.guard.ts`. Static legal pages (terms, FAQ) are
+lazy-loaded under `legal/`.
+
+---
+
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── app.ts              Root component — inline template (<router-outlet />)
-│   ├── app.config.ts       ApplicationConfig with all providers
-│   ├── app.routes.ts       Top-level Routes array
+│   ├── app.ts                  Root component — inline template (<router-outlet />)
+│   ├── app.config.ts           ApplicationConfig with all providers
+│   ├── app.routes.ts           Top-level Routes array (+ lazy legal routes)
 │   ├── core/
-│   │   ├── models/         TypeScript interfaces mirroring backend DTOs
-│   │   └── services/       @Injectable({ providedIn: 'root' }) services
-│   └── <feature>/          One folder per page / bounded context
-│       ├── <feature>.ts
-│       ├── <feature>.html
-│       └── <feature>.css
-├── index.html              <html class="dark"> — dark mode always forced on
-├── main.ts                 bootstrapApplication entry point
-└── styles.css              Global Tailwind entry (@source declarations required)
+│   │   ├── guards/             Route guards (auth.guard.ts)
+│   │   ├── models/             TS interfaces mirroring backend DTOs
+│   │   │                       (icu-bed, patient, evaluation, identifier-type, health)
+│   │   └── services/           @Injectable({ providedIn: 'root' }) HTTP services
+│   │                           (icu-beds, patient, evaluation, identifier-type, health)
+│   ├── home/                   Landing page
+│   ├── dashboard/              ICU dashboard shell + components:
+│   │   ├── navbar/  sidebar/   Layout chrome
+│   │   ├── beds-dashboard/     Bed-status overview
+│   │   ├── beds-grid/          Bed grid rendering
+│   │   ├── admission-modal/    Patient admission form
+│   │   ├── ventilator-form/    Respiratory evaluation form
+│   │   ├── detail-panel/       Selected bed / patient detail
+│   │   └── backend-service-card/  Backend health indicator
+│   ├── beds-create/            Standalone "new bed" page (/beds/new)
+│   └── legal/                  Lazy-loaded terms / FAQ pages
+├── index.html                  <html class="dark"> — dark mode always forced on
+├── main.ts                     bootstrapApplication entry point
+└── styles.css                  Global Tailwind entry (@source declarations required)
 ```
 
 ---

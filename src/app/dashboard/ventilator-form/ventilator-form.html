@@ -1,0 +1,260 @@
+@if (!evaluationResult()) {
+  <form [formGroup]="form" class="space-y-4" novalidate (ngSubmit)="submit()">
+    @if (!hasSelectedBed()) {
+      <div class="rounded-lg border border-slate-700 bg-slate-950/40 p-3 text-xs text-slate-400">
+        Selecciona una cama para habilitar el formulario.
+      </div>
+    } @else {
+      <div class="rounded-lg border border-cyan-500/30 bg-cyan-950/20 p-3 text-xs text-cyan-100">
+        Cama activa: <span class="font-semibold">{{ selectedBedNumber() }}</span>
+      </div>
+    }
+
+    <div>
+      <label for="brand" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">
+        Marca de ventilador
+      </label>
+      <select
+        id="brand"
+        formControlName="brand"
+        class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+      >
+        @for (brand of brandOptions; track brand) {
+          <option [value]="brand">{{ brand }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div>
+        <label for="f" class="mb-1 block text-xs font-medium text-slate-300">Frecuencia respiratoria (f)</label>
+        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+          <input
+            id="f"
+            type="number"
+            formControlName="f"
+            (input)="onNumericInput('f', $event)"
+            class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+          >
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">rpm</span>
+        </div>
+        @if (isInvalid('f')) {
+          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            {{ errorMessage('f') }}
+          </p>
+        }
+      </div>
+
+      <div>
+        <label for="vt" class="mb-1 block text-xs font-medium text-slate-300">Volumen corriente (Vt)</label>
+        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+          <input
+            id="vt"
+            type="number"
+            formControlName="vt"
+            (input)="onNumericInput('vt', $event)"
+            class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+          >
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">mL</span>
+        </div>
+        @if (isInvalid('vt')) {
+          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            {{ errorMessage('vt') }}
+          </p>
+        }
+      </div>
+
+      <div>
+        <label for="fio2" class="mb-1 block text-xs font-medium text-slate-300">FiO2</label>
+        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+          <input
+            id="fio2"
+            type="number"
+            step="0.01"
+            formControlName="fio2"
+            (keydown)="replaceCommaWithDot($event)"
+            class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+          >
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">Fracción</span>
+        </div>
+        @if (isInvalid('fio2')) {
+          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            {{ errorMessage('fio2') }}
+          </p>
+        }
+      </div>
+
+      <div>
+        <label for="pao2" class="mb-1 block text-xs font-medium text-slate-300">PaO2</label>
+        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+          <input
+            id="pao2"
+            type="number"
+            formControlName="pao2"
+            (input)="onNumericInput('pao2', $event)"
+            class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+          >
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">mmHg</span>
+        </div>
+        @if (isInvalid('pao2')) {
+          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            {{ errorMessage('pao2') }}
+          </p>
+        }
+      </div>
+
+      <div>
+        <label for="peep" class="mb-1 block text-xs font-medium text-slate-300">PEEP</label>
+        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+          <input
+            id="peep"
+            type="number"
+            formControlName="peep"
+            (input)="onNumericInput('peep', $event)"
+            class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+          >
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">cmH₂O</span>
+        </div>
+        @if (isInvalid('peep')) {
+          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            {{ errorMessage('peep') }}
+          </p>
+        }
+      </div>
+
+      <div>
+        <label for="pplat" class="mb-1 block text-xs font-medium text-slate-300">Presión plateau (Pplat)</label>
+        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+          <input
+            id="pplat"
+            type="number"
+            step="0.1"
+            formControlName="pplat"
+            (input)="onNumericInput('pplat', $event)"
+            (keydown)="replaceCommaWithDot($event)"
+            class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+          >
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">cmH₂O</span>
+        </div>
+        @if (isInvalid('pplat')) {
+          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            {{ errorMessage('pplat') }}
+          </p>
+        }
+        @if (showPlatCrossError()) {
+          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            La Pplat debe ser mayor que el PEEP
+          </p>
+        }
+      </div>
+    </div>
+
+    @if (selectedBrand() === 'TECME') {
+      <div>
+        <label for="triggerFlow" class="mb-1 block text-xs font-medium text-slate-300">Trigger por flujo</label>
+        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+          <input
+            id="triggerFlow"
+            type="number"
+            formControlName="triggerFlow"
+            (input)="onNumericInput('triggerFlow', $event)"
+            class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+          >
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">L/min</span>
+        </div>
+        @if (isInvalid('triggerFlow')) {
+          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            {{ errorMessage('triggerFlow') }}
+          </p>
+        }
+      </div>
+    } @else {
+      <div>
+        <label for="inspTime" class="mb-1 block text-xs font-medium text-slate-300">Tiempo inspiratorio</label>
+        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+          <input
+            id="inspTime"
+            type="number"
+            step="0.1"
+            formControlName="inspTime"
+            (keydown)="replaceCommaWithDot($event)"
+            class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
+          >
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">s</span>
+        </div>
+        @if (isInvalid('inspTime')) {
+          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            {{ errorMessage('inspTime') }}
+          </p>
+        }
+      </div>
+    }
+
+    @if (submitError()) {
+      <div class="rounded-md border border-red-500/70 bg-red-950/60 px-3 py-2 text-xs font-medium text-red-100">
+        {{ submitError() }}
+      </div>
+    }
+
+    <div class="pt-2">
+      <button
+        type="submit"
+        [disabled]="form.invalid || !hasSelectedBed() || isLoading()"
+        class="flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/70 bg-cyan-700 px-3 py-2 text-sm font-semibold text-cyan-50 transition-colors enabled:hover:bg-cyan-600 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
+      >
+        @if (isLoading()) {
+          <span class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+          Procesando...
+        } @else {
+          Guardar evaluación
+        }
+      </button>
+    </div>
+  </form>
+} @else {
+  @if (evaluationResult(); as result) {
+    <div class="space-y-4">
+      <div class="rounded-lg border border-cyan-500/30 bg-cyan-950/20 p-3 text-xs text-cyan-100">
+        Cama activa: <span class="font-semibold">{{ selectedBedNumber() }}</span>
+        <span class="ml-2 text-cyan-300/60">— Resultados de la última evaluación</span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3">
+        <div class="rounded-xl border p-3 text-center" [class]="rsbiColorClass(result.rsbiInterpretation)">
+          <p class="text-[10px] font-semibold uppercase tracking-wide opacity-70">RSBI</p>
+          <p class="mt-1 text-xl font-bold">{{ result.rsbiSnapshot | number: '1.1-1' }}</p>
+          <p class="text-[10px] font-medium opacity-60">resp/L/min</p>
+          <p class="mt-1 text-xs font-semibold">{{ rsbiLabel(result.rsbiInterpretation) }}</p>
+        </div>
+
+        <div class="rounded-xl border p-3 text-center" [class]="pafiColorClass(result.pafiClassification)">
+          <p class="text-[10px] font-semibold uppercase tracking-wide opacity-70">PaFi</p>
+          <p class="mt-1 text-xl font-bold">{{ result.pafiSnapshot | number: '1.0-0' }}</p>
+          <p class="text-[10px] font-medium opacity-60">mmHg</p>
+          <p class="mt-1 text-xs font-semibold">{{ pafiLabel(result.pafiClassification) }}</p>
+        </div>
+
+        <div class="rounded-xl border p-3 text-center" [class]="cstatColorClass(result.cstatInterpretation)">
+          <p class="text-[10px] font-semibold uppercase tracking-wide opacity-70">Cstat</p>
+          <p class="mt-1 text-xl font-bold">{{ result.cstatSnapshot | number: '1.1-1' }}</p>
+          <p class="text-[10px] font-medium opacity-60">mL/cmH₂O</p>
+          <p class="mt-1 text-xs font-semibold">{{ cstatLabel(result.cstatInterpretation) }}</p>
+        </div>
+      </div>
+
+      @if (result.alertTriggered) {
+        <div class="rounded-md border border-red-500/70 bg-red-950/40 px-3 py-2 text-xs font-semibold text-red-200">
+          Alerta clínica activada — revisar parámetros del paciente.
+        </div>
+      }
+
+      <button
+        type="button"
+        (click)="newEvaluation()"
+        class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300"
+      >
+        Nueva evaluación
+      </button>
+    </div>
+  }
+}
