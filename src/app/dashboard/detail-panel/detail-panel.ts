@@ -11,4 +11,5 @@ import { VentilatorForm } from '../ventilator-form/ventilator-form';
 export class DetailPanel {
   readonly selectedBedId = input<string | null>(null);
   readonly selectedBedNumber = input<string | null>(null);
+  readonly patientId = input<string | null>(null);
 }

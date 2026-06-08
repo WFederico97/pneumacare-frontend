@@ -17,6 +17,7 @@ export class IcuBedsService {
           bedId: item.bedId,
           bedNumber: item.bedNumber,
           status: item.status,
+          patientId: item.patientId,
         }))
       )
     );
@@ -30,6 +31,7 @@ export class IcuBedsService {
           bedId: response.data.bedId,
           bedNumber: response.data.bedNumber,
           status: response.data.status,
+          patientId: response.data.patientId,
         }))
       );
   }

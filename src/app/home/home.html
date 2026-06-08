@@ -7,7 +7,7 @@
     <section class="grid flex-1 gap-6 p-6 lg:grid-cols-5">
       <div class="lg:col-span-3">
         <app-beds-dashboard
-          [admittedBedId]="admittedBedId()"
+          [admittedBed]="admittedBed()"
           (bedSelected)="handleBedSelected($event)"
         />
       </div>
@@ -26,6 +26,7 @@
           <app-detail-panel
             [selectedBedId]="selectedBed()?.bedId ?? null"
             [selectedBedNumber]="selectedBed()?.bedNumber ?? null"
+            [patientId]="selectedBed()?.patientId ?? null"
           />
         } @else {
           <section class="rounded-2xl border border-slate-700/60 bg-slate-900/80 p-5 text-sm text-slate-300">
