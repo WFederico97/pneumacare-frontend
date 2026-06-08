@@ -13,7 +13,7 @@ import { BedsGrid } from '../beds-grid/beds-grid';
 })
 export class BedsDashboard implements OnInit {
   private readonly icuBedsService = inject(IcuBedsService);
-  readonly admittedBedId = input<string | null>(null);
+  readonly admittedBed = input<{ bedId: string; patientId: string } | null>(null);
 
   readonly beds = signal<IcuBed[]>([]);
   readonly bedsLoading = signal(true);
@@ -24,17 +24,19 @@ export class BedsDashboard implements OnInit {
 
   constructor() {
     effect(() => {
-      const bedId = this.admittedBedId();
-      if (!bedId || bedId === this.lastProcessedAdmissionId) {
+      const admission = this.admittedBed();
+      if (!admission || admission.bedId === this.lastProcessedAdmissionId) {
         return;
       }
 
       this.beds.update(currentBeds =>
         currentBeds.map(bed =>
-          bed.bedId === bedId ? { ...bed, status: 'OCCUPIED' } : bed
+          bed.bedId === admission.bedId
+            ? { ...bed, status: 'OCCUPIED', patientId: admission.patientId }
+            : bed
         )
       );
-      this.lastProcessedAdmissionId = bedId;
+      this.lastProcessedAdmissionId = admission.bedId;
     });
   }
 

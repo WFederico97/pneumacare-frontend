@@ -22,7 +22,7 @@ export class AdmissionModal implements OnInit {
 
   readonly selectedBed = input<IcuBed | null>(null);
   readonly close = output<void>();
-  readonly admitted = output<string>();
+  readonly admitted = output<{ bedId: string; patientId: string }>();
 
   readonly isSubmitting = signal(false);
   readonly submitError = signal<string | null>(null);
@@ -122,8 +122,8 @@ export class AdmissionModal implements OnInit {
         bedId: bed.bedId,
       })
       .subscribe({
-        next: () => {
-          this.admitted.emit(bed.bedId);
+        next: response => {
+          this.admitted.emit({ bedId: bed.bedId, patientId: response.data.patientId });
           this.isSubmitting.set(false);
           this.close.emit();
         },
