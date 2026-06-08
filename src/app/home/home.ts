@@ -17,7 +17,7 @@ import { AdmissionModal } from '../dashboard/admission-modal/admission-modal';
 export class Home {
   readonly selectedBed = signal<IcuBed | null>(null);
   readonly isAdmissionModalOpen = signal(false);
-  readonly admittedBedId = signal<string | null>(null);
+  readonly admittedBed = signal<{ bedId: string; patientId: string } | null>(null);
   readonly toastMessage = signal<string | null>(null);
 
   handleBedSelected(bed: IcuBed): void {
@@ -36,8 +36,8 @@ export class Home {
     this.selectedBed.set(null);
   }
 
-  handlePatientAdmitted(bedId: string): void {
-    this.admittedBedId.set(bedId);
+  handlePatientAdmitted(admission: { bedId: string; patientId: string }): void {
+    this.admittedBed.set(admission);
     this.selectedBed.set(null);
     this.isAdmissionModalOpen.set(false);
     this.toastMessage.set('Paciente admitido correctamente.');
