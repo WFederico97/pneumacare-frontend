@@ -5,7 +5,7 @@
       type="button"
       (click)="checkHealth()"
       [disabled]="isLoading()"
-      class="flex items-center gap-1.5 text-xs text-slate-500 transition-colors hover:text-cyan-400 disabled:cursor-not-allowed disabled:opacity-40"
+      class="flex min-h-[36px] items-center gap-1.5 px-2 text-xs text-slate-500 transition-colors hover:text-cyan-400 disabled:cursor-not-allowed disabled:opacity-40"
     >
       Actualizar
     </button>
@@ -37,7 +37,7 @@
     </dl>
   } @else if (hasError()) {
     <div class="mb-4 flex items-center gap-3">
-      <span class="inline-flex h-2.5 w-2.5 rounded-full bg-rose-500" aria-label="Offline indicator"></span>
+      <span class="inline-flex h-2.5 w-2.5 rounded-full bg-rose-500" aria-label="Indicador fuera de línea"></span>
       <span class="text-sm font-semibold text-rose-400">Servicio inaccesible</span>
     </div>
     <p class="text-xs text-slate-500">
