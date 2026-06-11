@@ -31,6 +31,14 @@ export class BedsGrid {
     return 'Mantenimiento';
   }
 
+  /* WCAG SC 1.4.1: shape glyph so status is never conveyed by color alone.
+   * ● available (circle) · ■ occupied (square) · ◆ maintenance (diamond) */
+  statusShape(status: IcuBedStatus): string {
+    if (status === 'AVAILABLE') return '●';
+    if (status === 'OCCUPIED') return '■';
+    return '◆';
+  }
+
   cardClasses(status: IcuBedStatus): string {
     if (status === 'AVAILABLE') {
       return 'bg-green-800 text-green-50 ring-green-500/40 hover:bg-green-700';

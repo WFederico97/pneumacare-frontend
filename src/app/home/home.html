@@ -1,10 +1,18 @@
 <main class="min-h-screen bg-slate-950">
+  <!-- Skip-to-content: WCAG 2.4.1 -->
+  <a
+    href="#main-content"
+    class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-cyan-700 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-cyan-50"
+  >
+    Ir al contenido principal
+  </a>
+
   <app-dashboard-sidebar />
 
   <div class="ml-20 flex min-h-screen flex-col">
     <app-dashboard-navbar />
 
-    <section class="grid flex-1 gap-6 p-6 lg:grid-cols-5">
+    <section id="main-content" class="grid flex-1 gap-6 p-6 lg:grid-cols-5" tabindex="-1">
       <div class="lg:col-span-3">
         <app-beds-dashboard
           [admittedBed]="admittedBed()"
@@ -18,7 +26,7 @@
             <button
               type="button"
               (click)="clearSelectedBed()"
-              class="rounded-md border border-slate-600 px-2.5 py-1 text-xs font-medium text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300"
+              class="min-h-[44px] rounded-md border border-slate-600 px-3 py-2 text-xs font-medium text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300"
             >
               Deseleccionar cama
             </button>
@@ -37,14 +45,14 @@
     </section>
 
     <footer class="pb-6 pt-1 flex flex-col items-center gap-3" role="contentinfo">
-      <p class="text-xs text-slate-700 tracking-widest uppercase">
-        v0.0.1 &nbsp;·&nbsp; PNEUMACARE
+      <p class="text-xs text-slate-400 tracking-widest uppercase">
+        v1.1.0 &nbsp;·&nbsp; PNEUMACARE
       </p>
       <nav aria-label="Páginas legales">
         <ul class="flex gap-4 text-xs">
           <li>
             <a routerLink="/terms"
-               class="text-slate-500 hover:text-cyan-400 transition-colors
+               class="text-slate-400 hover:text-cyan-400 transition-colors
                       focus-visible:outline-none focus-visible:ring-2
                       focus-visible:ring-cyan-400 rounded">
               Términos y Condiciones
@@ -53,7 +61,7 @@
           <li aria-hidden="true" class="text-slate-700">·</li>
           <li>
             <a routerLink="/faq"
-               class="text-slate-500 hover:text-cyan-400 transition-colors
+               class="text-slate-400 hover:text-cyan-400 transition-colors
                       focus-visible:outline-none focus-visible:ring-2
                       focus-visible:ring-cyan-400 rounded">
               Preguntas Frecuentes
@@ -73,7 +81,7 @@
   }
 
   @if (toastMessage()) {
-    <div class="fixed bottom-5 right-5 z-50 rounded-lg border border-emerald-500/70 bg-emerald-950/80 px-4 py-2 text-sm font-medium text-emerald-100 shadow-lg">
+    <div role="status" aria-live="polite" class="fixed bottom-5 right-5 z-50 rounded-lg border border-emerald-500/70 bg-emerald-950/80 px-4 py-2 text-sm font-medium text-emerald-100 shadow-lg">
       {{ toastMessage() }}
     </div>
   }

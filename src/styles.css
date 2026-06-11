@@ -1,6 +1,31 @@
 /* Import Tailwind CSS v4 */
 @import "tailwindcss";
 
+/* WCAG 2.4.7 — visible focus ring on every interactive element */
+:focus-visible {
+  outline: 2px solid theme(colors.cyan.400);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* WCAG 2.3.3 / 2.2.2 — neutralize all animation for users who opt out */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* WCAG 2.5.5 — 44px minimum hit target for clinical controls */
+:root {
+  --hit-target-min: 44px;
+  --hit-target-sm: 36px;
+}
+
 /*
  * Tell Tailwind v4 where to scan for utility class usage.
  * Angular's esbuild pipeline processes CSS in isolation, so auto-detection

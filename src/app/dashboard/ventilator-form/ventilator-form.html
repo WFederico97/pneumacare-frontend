@@ -17,7 +17,7 @@
       <select
         id="brand"
         formControlName="brand"
-        class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+        class="min-h-[44px] w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
       >
         @for (brand of brandOptions; track brand) {
           <option [value]="brand">{{ brand }}</option>
@@ -25,21 +25,50 @@
       </select>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <!-- Perfiles rápidos: relleno instantáneo de todos los campos clínicos -->
+    <div>
+      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Perfil rápido</p>
+      <div class="flex gap-2" role="group" aria-label="Perfiles de ventilación rápidos">
+        @for (preset of presets; track preset.label) {
+          <button
+            type="button"
+            [attr.aria-pressed]="activePreset() === preset.label"
+            [disabled]="!hasSelectedBed()"
+            (click)="applyPreset(preset)"
+            class="flex-1 min-h-[44px] rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+            [class]="activePreset() === preset.label
+              ? 'border-cyan-400 bg-cyan-500/15 text-cyan-200'
+              : 'border-slate-600 bg-slate-900 text-slate-300 hover:border-cyan-500/60 hover:text-cyan-200'"
+          >
+            {{ preset.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- WCAG 1.3.1 / 4.1.2: fieldset groups clinical parameters for screen readers -->
+    <fieldset class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <legend class="sr-only">Parámetros ventilatorios para evaluación clínica</legend>
+
       <div>
         <label for="f" class="mb-1 block text-xs font-medium text-slate-300">Frecuencia respiratoria (f)</label>
-        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
+             [class.border-red-500]="isInvalid('f')">
           <input
             id="f"
             type="number"
+            inputmode="decimal"
             formControlName="f"
             (input)="onNumericInput('f', $event)"
+            aria-required="true"
+            [attr.aria-invalid]="isInvalid('f') ? 'true' : null"
+            [attr.aria-describedby]="isInvalid('f') ? 'f-error' : null"
             class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
           >
-          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">rpm</span>
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">rpm</span>
         </div>
         @if (isInvalid('f')) {
-          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+          <p id="f-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
             {{ errorMessage('f') }}
           </p>
         }
@@ -47,57 +76,73 @@
 
       <div>
         <label for="vt" class="mb-1 block text-xs font-medium text-slate-300">Volumen corriente (Vt)</label>
-        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
+             [class.border-red-500]="isInvalid('vt')">
           <input
             id="vt"
             type="number"
+            inputmode="decimal"
             formControlName="vt"
             (input)="onNumericInput('vt', $event)"
+            aria-required="true"
+            [attr.aria-invalid]="isInvalid('vt') ? 'true' : null"
+            [attr.aria-describedby]="isInvalid('vt') ? 'vt-error' : null"
             class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
           >
-          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">mL</span>
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">mL</span>
         </div>
         @if (isInvalid('vt')) {
-          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+          <p id="vt-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
             {{ errorMessage('vt') }}
           </p>
         }
       </div>
 
       <div>
-        <label for="fio2" class="mb-1 block text-xs font-medium text-slate-300">FiO2</label>
-        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <label for="fio2" class="mb-1 block text-xs font-medium text-slate-300">FiO₂</label>
+        <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
+             [class.border-red-500]="isInvalid('fio2')">
           <input
             id="fio2"
             type="number"
+            inputmode="decimal"
             step="0.01"
             formControlName="fio2"
+            (input)="onNumericInput('fio2', $event)"
             (keydown)="replaceCommaWithDot($event)"
+            aria-required="true"
+            [attr.aria-invalid]="isInvalid('fio2') ? 'true' : null"
+            [attr.aria-describedby]="isInvalid('fio2') ? 'fio2-error' : null"
             class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
           >
-          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">Fracción</span>
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">Fracción</span>
         </div>
         @if (isInvalid('fio2')) {
-          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+          <p id="fio2-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
             {{ errorMessage('fio2') }}
           </p>
         }
       </div>
 
       <div>
-        <label for="pao2" class="mb-1 block text-xs font-medium text-slate-300">PaO2</label>
-        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <label for="pao2" class="mb-1 block text-xs font-medium text-slate-300">PaO₂</label>
+        <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
+             [class.border-red-500]="isInvalid('pao2')">
           <input
             id="pao2"
             type="number"
+            inputmode="decimal"
             formControlName="pao2"
             (input)="onNumericInput('pao2', $event)"
+            aria-required="true"
+            [attr.aria-invalid]="isInvalid('pao2') ? 'true' : null"
+            [attr.aria-describedby]="isInvalid('pao2') ? 'pao2-error' : null"
             class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
           >
-          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">mmHg</span>
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">mmHg</span>
         </div>
         @if (isInvalid('pao2')) {
-          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+          <p id="pao2-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
             {{ errorMessage('pao2') }}
           </p>
         }
@@ -105,18 +150,23 @@
 
       <div>
         <label for="peep" class="mb-1 block text-xs font-medium text-slate-300">PEEP</label>
-        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
+             [class.border-red-500]="isInvalid('peep')">
           <input
             id="peep"
             type="number"
+            inputmode="decimal"
             formControlName="peep"
             (input)="onNumericInput('peep', $event)"
+            aria-required="true"
+            [attr.aria-invalid]="isInvalid('peep') ? 'true' : null"
+            [attr.aria-describedby]="isInvalid('peep') ? 'peep-error' : null"
             class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
           >
-          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">cmH₂O</span>
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">cmH₂O</span>
         </div>
         @if (isInvalid('peep')) {
-          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+          <p id="peep-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
             {{ errorMessage('peep') }}
           </p>
         }
@@ -124,46 +174,56 @@
 
       <div>
         <label for="pplat" class="mb-1 block text-xs font-medium text-slate-300">Presión plateau (Pplat)</label>
-        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
+             [class.border-red-500]="isInvalid('pplat') || showPlatCrossError()">
           <input
             id="pplat"
             type="number"
+            inputmode="decimal"
             step="0.1"
             formControlName="pplat"
             (input)="onNumericInput('pplat', $event)"
             (keydown)="replaceCommaWithDot($event)"
+            aria-required="true"
+            [attr.aria-invalid]="isInvalid('pplat') || showPlatCrossError() ? 'true' : null"
+            [attr.aria-describedby]="isInvalid('pplat') ? 'pplat-error' : showPlatCrossError() ? 'pplat-cross-error' : null"
             class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
           >
-          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">cmH₂O</span>
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">cmH₂O</span>
         </div>
         @if (isInvalid('pplat')) {
-          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+          <p id="pplat-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
             {{ errorMessage('pplat') }}
           </p>
         }
         @if (showPlatCrossError()) {
-          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+          <p id="pplat-cross-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
             La Pplat debe ser mayor que el PEEP
           </p>
         }
       </div>
-    </div>
+    </fieldset>
 
     @if (selectedBrand() === 'TECME') {
       <div>
         <label for="triggerFlow" class="mb-1 block text-xs font-medium text-slate-300">Trigger por flujo</label>
-        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
+             [class.border-red-500]="isInvalid('triggerFlow')">
           <input
             id="triggerFlow"
             type="number"
+            inputmode="decimal"
             formControlName="triggerFlow"
             (input)="onNumericInput('triggerFlow', $event)"
+            aria-required="true"
+            [attr.aria-invalid]="isInvalid('triggerFlow') ? 'true' : null"
+            [attr.aria-describedby]="isInvalid('triggerFlow') ? 'triggerFlow-error' : null"
             class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
           >
-          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">L/min</span>
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">L/min</span>
         </div>
         @if (isInvalid('triggerFlow')) {
-          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+          <p id="triggerFlow-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
             {{ errorMessage('triggerFlow') }}
           </p>
         }
@@ -171,27 +231,79 @@
     } @else {
       <div>
         <label for="inspTime" class="mb-1 block text-xs font-medium text-slate-300">Tiempo inspiratorio</label>
-        <div class="flex items-stretch rounded-lg border border-slate-600 bg-slate-950">
+        <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
+             [class.border-red-500]="isInvalid('inspTime')">
           <input
             id="inspTime"
             type="number"
+            inputmode="decimal"
             step="0.1"
             formControlName="inspTime"
+            (input)="onNumericInput('inspTime', $event)"
             (keydown)="replaceCommaWithDot($event)"
+            aria-required="true"
+            [attr.aria-invalid]="isInvalid('inspTime') ? 'true' : null"
+            [attr.aria-describedby]="isInvalid('inspTime') ? 'inspTime-error' : null"
             class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
           >
-          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400">s</span>
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">s</span>
         </div>
         @if (isInvalid('inspTime')) {
-          <p class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+          <p id="inspTime-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
             {{ errorMessage('inspTime') }}
           </p>
         }
       </div>
     }
 
+    <!-- Vista previa de métricas en tiempo real — se actualiza mientras se escriben los valores -->
+    @if (hasLiveMetrics()) {
+      <div
+        role="status"
+        aria-live="polite"
+        aria-label="Vista previa de métricas calculadas"
+        class="grid grid-cols-3 gap-2 rounded-xl border border-slate-700/60 bg-slate-900/60 p-3"
+      >
+        <div class="text-center">
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">RSBI</p>
+          @if (liveRsbi() !== null) {
+            <p class="mt-0.5 font-mono text-lg font-bold leading-none" [class]="liveRsbiClass()">
+              {{ liveRsbi() | number: '1.0-0' }}
+            </p>
+            <p class="mt-0.5 text-xs text-slate-500">resp/L·min</p>
+          } @else {
+            <p class="mt-0.5 font-mono text-lg font-bold leading-none text-slate-600">—</p>
+          }
+        </div>
+
+        <div class="text-center">
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">PaFi</p>
+          @if (livePafi() !== null) {
+            <p class="mt-0.5 font-mono text-lg font-bold leading-none" [class]="livePafiClass()">
+              {{ livePafi() | number: '1.0-0' }}
+            </p>
+            <p class="mt-0.5 text-xs text-slate-500">mmHg</p>
+          } @else {
+            <p class="mt-0.5 font-mono text-lg font-bold leading-none text-slate-600">—</p>
+          }
+        </div>
+
+        <div class="text-center">
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Cstat</p>
+          @if (liveCstat() !== null) {
+            <p class="mt-0.5 font-mono text-lg font-bold leading-none" [class]="liveCstatClass()">
+              {{ liveCstat() | number: '1.0-0' }}
+            </p>
+            <p class="mt-0.5 text-xs text-slate-500">mL/cmH₂O</p>
+          } @else {
+            <p class="mt-0.5 font-mono text-lg font-bold leading-none text-slate-600">—</p>
+          }
+        </div>
+      </div>
+    }
+
     @if (submitError()) {
-      <div class="rounded-md border border-red-500/70 bg-red-950/60 px-3 py-2 text-xs font-medium text-red-100">
+      <div role="alert" class="rounded-md border border-red-500/70 bg-red-950/60 px-3 py-2 text-xs font-medium text-red-100">
         {{ submitError() }}
       </div>
     }
@@ -200,10 +312,10 @@
       <button
         type="submit"
         [disabled]="form.invalid || !hasSelectedBed() || isLoading()"
-        class="flex w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/70 bg-cyan-700 px-3 py-2 text-sm font-semibold text-cyan-50 transition-colors enabled:hover:bg-cyan-600 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
+        class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-cyan-500/70 bg-cyan-700 px-3 py-2 text-sm font-semibold text-cyan-50 transition-colors enabled:hover:bg-cyan-600 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
       >
         @if (isLoading()) {
-          <span class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+          <span class="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
           Procesando...
         } @else {
           Guardar evaluación
@@ -221,29 +333,29 @@
 
       <div class="grid grid-cols-3 gap-3">
         <div class="rounded-xl border p-3 text-center" [class]="rsbiColorClass(result.rsbiInterpretation)">
-          <p class="text-[10px] font-semibold uppercase tracking-wide opacity-70">RSBI</p>
+          <p class="text-xs font-semibold uppercase tracking-wide opacity-80">RSBI</p>
           <p class="mt-1 text-xl font-bold">{{ result.rsbiSnapshot | number: '1.1-1' }}</p>
-          <p class="text-[10px] font-medium opacity-60">resp/L/min</p>
+          <p class="text-xs font-medium opacity-70">resp/L/min</p>
           <p class="mt-1 text-xs font-semibold">{{ rsbiLabel(result.rsbiInterpretation) }}</p>
         </div>
 
         <div class="rounded-xl border p-3 text-center" [class]="pafiColorClass(result.pafiClassification)">
-          <p class="text-[10px] font-semibold uppercase tracking-wide opacity-70">PaFi</p>
+          <p class="text-xs font-semibold uppercase tracking-wide opacity-80">PaFi</p>
           <p class="mt-1 text-xl font-bold">{{ result.pafiSnapshot | number: '1.0-0' }}</p>
-          <p class="text-[10px] font-medium opacity-60">mmHg</p>
+          <p class="text-xs font-medium opacity-70">mmHg</p>
           <p class="mt-1 text-xs font-semibold">{{ pafiLabel(result.pafiClassification) }}</p>
         </div>
 
         <div class="rounded-xl border p-3 text-center" [class]="cstatColorClass(result.cstatInterpretation)">
-          <p class="text-[10px] font-semibold uppercase tracking-wide opacity-70">Cstat</p>
+          <p class="text-xs font-semibold uppercase tracking-wide opacity-80">Cstat</p>
           <p class="mt-1 text-xl font-bold">{{ result.cstatSnapshot | number: '1.1-1' }}</p>
-          <p class="text-[10px] font-medium opacity-60">mL/cmH₂O</p>
+          <p class="text-xs font-medium opacity-70">mL/cmH₂O</p>
           <p class="mt-1 text-xs font-semibold">{{ cstatLabel(result.cstatInterpretation) }}</p>
         </div>
       </div>
 
       @if (result.alertTriggered) {
-        <div class="rounded-md border border-red-500/70 bg-red-950/40 px-3 py-2 text-xs font-semibold text-red-200">
+        <div role="alert" class="rounded-md border border-red-500/70 bg-red-950/40 px-3 py-2 text-xs font-semibold text-red-200">
           Alerta clínica activada — revisar parámetros del paciente.
         </div>
       }
@@ -251,7 +363,7 @@
       <button
         type="button"
         (click)="newEvaluation()"
-        class="w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300"
+        class="w-full min-h-[44px] rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300"
       >
         Nueva evaluación
       </button>

@@ -1,4 +1,5 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 
 interface FaqItem {
@@ -15,6 +16,10 @@ interface FaqItem {
 })
 export class Faq {
   readonly openIndex = signal<number | null>(null);
+
+  constructor() {
+    inject(Title).setTitle('Preguntas Frecuentes — PneumaCare');
+  }
 
   readonly items: FaqItem[] = [
     {
