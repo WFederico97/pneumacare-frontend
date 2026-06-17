@@ -1,5 +1,15 @@
 @if (!evaluationResult()) {
   <form [formGroup]="form" class="space-y-4" novalidate (ngSubmit)="submit()">
+    @if (!isShiftOpen()) {
+      <div
+        class="rounded-lg border border-red-500/40 bg-red-950/30 p-3 text-xs text-red-200"
+        role="status"
+        aria-live="polite"
+      >
+        No hay un turno activo. Las evaluaciones están deshabilitadas hasta que se abra un turno.
+      </div>
+    }
+
     @if (!hasSelectedBed()) {
       <div class="rounded-lg border border-slate-700 bg-slate-950/40 p-3 text-xs text-slate-400">
         Selecciona una cama para habilitar el formulario.

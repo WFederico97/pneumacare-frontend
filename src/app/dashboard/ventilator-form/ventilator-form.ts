@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { EvaluationService } from '../../core/services/evaluation.service';
+import { ShiftService } from '../../core/services/shift.service';
 import { CreateEvaluationRequest, CstatInterpretation, EvaluationResult, PafiClassification, RsbiInterpretation, VentilatorBrand } from '../../core/models/evaluation.model';
 
 type NumericControl = 'f' | 'vt' | 'fio2' | 'pao2' | 'peep' | 'pplat' | 'triggerFlow' | 'inspTime';
@@ -12,8 +13,6 @@ const PHYSICAL_VENTILATOR_IDS: Record<VentilatorBrand, string> = {
   TECME: '00000000-0000-0000-0001-000000000001',
   NEUMOVENT: '00000000-0000-0000-0001-000000000002',
 };
-const PLACEHOLDER_SHIFT_ID = '00000000-0000-0000-0000-000000000000';
-
 interface PresetProfile {
   readonly label: string;
   readonly f: number;
@@ -53,6 +52,10 @@ function platGreaterThanPeep(): ValidatorFn {
 export class VentilatorForm implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly evaluationService = inject(EvaluationService);
+  private readonly shiftService = inject(ShiftService);
+
+  /** Evaluations require an OPEN shift (PNMC-93 AC3); the form locks otherwise. */
+  readonly isShiftOpen = this.shiftService.isShiftOpen;
 
   readonly selectedBedId = input<string | null>(null);
   readonly selectedBedNumber = input<string | null>(null);
@@ -136,8 +139,9 @@ export class VentilatorForm implements OnInit {
   constructor() {
     effect(() => {
       const currentBedId = this.selectedBedId();
+      const shiftOpen = this.isShiftOpen();
 
-      if (!currentBedId) {
+      if (!currentBedId || !shiftOpen) {
         this.form.disable({ emitEvent: false });
         this.resetClinicalFields();
         this.evaluationResult.set(null);
@@ -279,6 +283,12 @@ export class VentilatorForm implements OnInit {
       return;
     }
 
+    const activeShift = this.shiftService.activeShift();
+    if (!activeShift) {
+      this.setSubmitError('No hay un turno activo. No se pueden registrar evaluaciones.');
+      return;
+    }
+
     const v = this.form.value;
     const brand = this.selectedBrand();
     const extendedParameters: Record<string, unknown> =
@@ -288,7 +298,7 @@ export class VentilatorForm implements OnInit {
 
     const payload: CreateEvaluationRequest = {
       patientId: currentPatientId,
-      shiftId: PLACEHOLDER_SHIFT_ID,
+      shiftId: activeShift.id,
       physicalVentilatorId: PHYSICAL_VENTILATOR_IDS[brand],
       brand,
       f: v.f!,
