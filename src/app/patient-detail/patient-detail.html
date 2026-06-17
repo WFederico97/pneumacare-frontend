@@ -50,7 +50,50 @@
     </header>
 
     <section class="mt-6" aria-label="Línea de tiempo clínica">
-      <h2 class="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">Historia clínica</h2>
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Historia clínica</h2>
+
+        <div class="relative">
+          <button
+            type="button"
+            (click)="toggleMenu()"
+            [disabled]="!isShiftOpen()"
+            [attr.aria-expanded]="isMenuOpen()"
+            [attr.title]="isShiftOpen() ? null : 'Requiere un turno abierto'"
+            aria-haspopup="menu"
+            class="inline-flex min-h-[36px] items-center gap-1 rounded-md border border-cyan-500/50 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-200 transition-colors hover:border-cyan-400 hover:text-cyan-100 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800/60 disabled:text-slate-500"
+          >
+            <span aria-hidden="true">+</span> Agregar evento
+          </button>
+
+          @if (isMenuOpen()) {
+            <div role="menu" class="absolute right-0 z-30 mt-1 w-52 overflow-hidden rounded-lg border border-slate-700 bg-slate-900 shadow-xl">
+              <button
+                type="button"
+                role="menuitem"
+                (click)="openModal('sbt')"
+                class="block w-full px-4 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800"
+              >
+                SBT
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                (click)="openModal('airway')"
+                class="block w-full border-t border-slate-800 px-4 py-2.5 text-left text-sm text-slate-200 hover:bg-slate-800"
+              >
+                Evento de vía aérea
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (!isShiftOpen()) {
+        <p class="mb-3 text-xs text-slate-500">
+          Abre un turno para registrar nuevos eventos clínicos.
+        </p>
+      }
 
       @if (isEmpty()) {
         <div class="rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 p-10 text-center">
@@ -69,5 +112,23 @@
         </ol>
       }
     </section>
+
+    @if (patientId(); as pid) {
+      @if (activeModal() === 'airway') {
+        <app-airway-event-modal
+          [patientId]="pid"
+          [currentStatus]="currentRespiratoryStatus()"
+          (created)="onAirwayCreated($event)"
+          (close)="closeModal()"
+        />
+      }
+      @if (activeModal() === 'sbt') {
+        <app-sbt-modal
+          [patientId]="pid"
+          (created)="onSbtCreated($event)"
+          (close)="closeModal()"
+        />
+      }
+    }
   }
 </div>
