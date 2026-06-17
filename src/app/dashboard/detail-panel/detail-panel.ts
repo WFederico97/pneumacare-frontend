@@ -1,9 +1,10 @@
 import { Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { VentilatorForm } from '../ventilator-form/ventilator-form';
 
 @Component({
   selector: 'app-detail-panel',
-  imports: [VentilatorForm],
+  imports: [VentilatorForm, RouterLink],
   templateUrl: './detail-panel.html',
   styleUrl: './detail-panel.css',
   host: { class: 'block' },
