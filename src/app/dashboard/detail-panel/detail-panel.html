@@ -15,6 +15,14 @@
         <p class="text-xs text-cyan-200">Cama seleccionada</p>
         <p class="mt-1 text-lg font-semibold text-cyan-100">{{ selectedBedNumber() }}</p>
         <p class="mt-2 text-xs text-cyan-200/85">Paciente actualmente internado.</p>
+        @if (patientId(); as id) {
+          <a
+            [routerLink]="['/patients', id]"
+            class="mt-3 inline-flex items-center gap-1 rounded-md border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-200 transition-colors hover:border-cyan-400 hover:text-cyan-100"
+          >
+            Ver historia clínica <span aria-hidden="true">→</span>
+          </a>
+        }
       } @else {
         <p class="text-sm text-cyan-100">Selecciona una cama ocupada para comenzar.</p>
       }
