@@ -4,15 +4,15 @@
       <h2 id="beds-grid-title" class="text-base font-semibold text-slate-100">
         Estado de camas UCI
       </h2>
-      <p class="mt-1 text-xs text-slate-400">
-        Disponible = Verde, Ocupada = Rojo, Mantenimiento = Amarillo
+      <p class="mt-1 text-xs text-slate-300">
+        Disponible = Verde ●, Ocupada = Rojo ■, Mantenimiento = Amarillo ◆
       </p>
     </div>
 
     <div class="flex items-center gap-2">
       <a
         routerLink="/beds/new"
-        class="rounded-lg border border-cyan-500/60 px-3 py-1.5 text-xs font-medium text-cyan-200 transition-colors hover:border-cyan-400 hover:text-cyan-100"
+        class="inline-flex min-h-[44px] items-center rounded-lg border border-cyan-500/60 px-3 text-xs font-medium text-cyan-200 transition-colors hover:border-cyan-400 hover:text-cyan-100"
       >
         Nueva cama
       </a>
@@ -20,7 +20,7 @@
         type="button"
         (click)="loadBeds()"
         [disabled]="bedsLoading()"
-        class="rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+        class="min-h-[44px] rounded-lg border border-slate-600 px-3 text-xs font-medium text-slate-200 transition-colors hover:border-cyan-400 hover:text-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
       >
         Actualizar camas
       </button>

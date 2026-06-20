@@ -18,6 +18,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'patients/:id',
+    loadComponent: () =>
+      import('./patient-detail/patient-detail').then(m => m.PatientDetail),
+    title: 'Historia clínica | PneumaCare',
+    canActivate: [authGuard],
+  },
+  {
     path: '',
     loadChildren: () =>
       import('./legal/legal.routes').then(m => m.LEGAL_ROUTES),

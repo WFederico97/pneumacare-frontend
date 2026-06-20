@@ -1,10 +1,18 @@
 <main class="min-h-screen bg-slate-950">
+  <!-- Skip-to-content: WCAG 2.4.1 -->
+  <a
+    href="#main-content"
+    class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-cyan-700 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-cyan-50"
+  >
+    Ir al contenido principal
+  </a>
+
   <app-dashboard-sidebar />
 
   <div class="ml-20 flex min-h-screen flex-col">
     <app-dashboard-navbar />
 
-    <section class="mx-auto w-full max-w-3xl px-6 py-8">
+    <section id="main-content" tabindex="-1" class="mx-auto w-full max-w-3xl px-6 py-8">
       <div class="mb-6 flex items-center justify-between gap-4">
         <div>
           <h1 class="text-xl font-semibold text-slate-100">Nueva cama UCI</h1>
@@ -29,10 +37,13 @@
               type="text"
               formControlName="bedNumber"
               placeholder="Ej: BED-004"
+              aria-required="true"
+              [attr.aria-invalid]="isInvalidBedNumber()"
+              [attr.aria-describedby]="isInvalidBedNumber() ? 'bedNumber-error' : null"
               class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
             >
             @if (isInvalidBedNumber()) {
-              <p class="mt-2 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+              <p id="bedNumber-error" role="alert" class="mt-2 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
                 @if (form.controls.bedNumber.errors?.['required']) {
                   El número de cama es obligatorio.
                 } @else if (form.controls.bedNumber.errors?.['maxlength']) {
@@ -47,7 +58,7 @@
           <button
             type="submit"
             [disabled]="form.invalid || isSubmitting()"
-            class="w-full rounded-lg border border-cyan-500/70 bg-cyan-700 px-3 py-2 text-sm font-semibold text-cyan-50 transition-colors enabled:hover:bg-cyan-600 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
+            class="w-full min-h-[44px] rounded-lg border border-cyan-500/70 bg-cyan-700 px-3 py-2 text-sm font-semibold text-cyan-50 transition-colors enabled:hover:bg-cyan-600 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
           >
             @if (isSubmitting()) {
               Guardando...

@@ -1,8 +1,10 @@
-import { Component, OnInit, effect, inject, input, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DecimalPipe } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { EvaluationService } from '../../core/services/evaluation.service';
+import { ShiftService } from '../../core/services/shift.service';
 import { CreateEvaluationRequest, CstatInterpretation, EvaluationResult, PafiClassification, RsbiInterpretation, VentilatorBrand } from '../../core/models/evaluation.model';
 
 type NumericControl = 'f' | 'vt' | 'fio2' | 'pao2' | 'peep' | 'pplat' | 'triggerFlow' | 'inspTime';
@@ -11,7 +13,23 @@ const PHYSICAL_VENTILATOR_IDS: Record<VentilatorBrand, string> = {
   TECME: '00000000-0000-0000-0001-000000000001',
   NEUMOVENT: '00000000-0000-0000-0001-000000000002',
 };
-const PLACEHOLDER_SHIFT_ID = '00000000-0000-0000-0000-000000000000';
+interface PresetProfile {
+  readonly label: string;
+  readonly f: number;
+  readonly vt: number;
+  readonly fio2: number;
+  readonly pao2: number;
+  readonly peep: number;
+  readonly pplat: number;
+  readonly triggerFlow: number;
+  readonly inspTime: number;
+}
+
+const PRESETS: readonly PresetProfile[] = [
+  { label: 'Protección ARDS', f: 14, vt: 400, fio2: 0.60, pao2: 60, peep: 10, pplat: 28, triggerFlow: 2, inspTime: 0.8 },
+  { label: 'Destete', f: 18, vt: 500, fio2: 0.35, pao2: 80, peep: 5, pplat: 18, triggerFlow: 2, inspTime: 0.9 },
+  { label: 'Estándar', f: 14, vt: 500, fio2: 0.40, pao2: 80, peep: 5, pplat: 22, triggerFlow: 2, inspTime: 1.0 },
+];
 
 function platGreaterThanPeep(): ValidatorFn {
   return (group: AbstractControl): ValidationErrors | null => {
@@ -34,6 +52,10 @@ function platGreaterThanPeep(): ValidatorFn {
 export class VentilatorForm implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly evaluationService = inject(EvaluationService);
+  private readonly shiftService = inject(ShiftService);
+
+  /** Evaluations require an OPEN shift (PNMC-93 AC3); the form locks otherwise. */
+  readonly isShiftOpen = this.shiftService.isShiftOpen;
 
   readonly selectedBedId = input<string | null>(null);
   readonly selectedBedNumber = input<string | null>(null);
@@ -46,6 +68,9 @@ export class VentilatorForm implements OnInit {
   readonly isLoading = signal(false);
   readonly evaluationResult = signal<EvaluationResult | null>(null);
   readonly submitError = signal<string | null>(null);
+  readonly activePreset = signal<string | null>(null);
+
+  readonly presets = PRESETS;
 
   readonly form = this.formBuilder.group({
     brand: this.formBuilder.control<VentilatorBrand>('TECME', {
@@ -74,11 +99,49 @@ export class VentilatorForm implements OnInit {
     inspTime: this.formBuilder.control<number | null>(null),
   }, { validators: platGreaterThanPeep() });
 
+  /* Live form values as a signal — drives real-time metric preview */
+  private readonly _formValues = toSignal(this.form.valueChanges, {
+    initialValue: this.form.value,
+  });
+
+  /* RSBI = f / (Vt[L]) — live, computes as user types */
+  readonly liveRsbi = computed(() => {
+    const v = this._formValues();
+    const f = v.f;
+    const vt = v.vt;
+    if (f === null || f === undefined || !vt || vt <= 0) return null;
+    return f / (vt / 1000);
+  });
+
+  /* PaFi = PaO2 / FiO2 (FiO2 as fraction 0.21–1.0) */
+  readonly livePafi = computed(() => {
+    const v = this._formValues();
+    const pao2 = v.pao2;
+    const fio2 = v.fio2;
+    if (!pao2 || !fio2 || fio2 <= 0) return null;
+    return pao2 / fio2;
+  });
+
+  /* Cstat = Vt[mL] / (Pplat − PEEP) */
+  readonly liveCstat = computed(() => {
+    const v = this._formValues();
+    const vt = v.vt;
+    const pplat = v.pplat;
+    const peep = v.peep;
+    if (!vt || !pplat || peep === null || peep === undefined || pplat <= peep) return null;
+    return vt / (pplat - peep);
+  });
+
+  readonly hasLiveMetrics = computed(() =>
+    this.liveRsbi() !== null || this.livePafi() !== null || this.liveCstat() !== null
+  );
+
   constructor() {
     effect(() => {
       const currentBedId = this.selectedBedId();
+      const shiftOpen = this.isShiftOpen();
 
-      if (!currentBedId) {
+      if (!currentBedId || !shiftOpen) {
         this.form.disable({ emitEvent: false });
         this.resetClinicalFields();
         this.evaluationResult.set(null);
@@ -146,7 +209,7 @@ export class VentilatorForm implements OnInit {
 
     control.setValue(Number.isNaN(numericValue) ? null : numericValue, { emitEvent: false });
     control.markAsDirty();
-    control.updateValueAndValidity({ emitEvent: false });
+    control.updateValueAndValidity();
   }
 
   replaceCommaWithDot(event: KeyboardEvent): void {
@@ -167,6 +230,47 @@ export class VentilatorForm implements OnInit {
     target.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
+  /* Apply a preset profile — fills all six clinical fields at once */
+  applyPreset(preset: PresetProfile): void {
+    if (!this.hasSelectedBed()) return;
+
+    const brand = this.selectedBrand();
+    const extended = brand === 'TECME'
+      ? { triggerFlow: preset.triggerFlow, inspTime: null }
+      : { triggerFlow: null, inspTime: preset.inspTime };
+
+    this.form.patchValue({ ...preset, ...extended });
+    this.form.markAsDirty();
+    this.evaluationResult.set(null);
+    this.submitError.set(null);
+    this.activePreset.set(preset.label);
+  }
+
+  liveRsbiClass(): string {
+    const v = this.liveRsbi();
+    if (v === null) return 'text-slate-500';
+    if (v > 105) return 'text-red-300';
+    if (v >= 80) return 'text-yellow-300';
+    return 'text-emerald-300';
+  }
+
+  livePafiClass(): string {
+    const v = this.livePafi();
+    if (v === null) return 'text-slate-500';
+    if (v >= 300) return 'text-emerald-300';
+    if (v >= 200) return 'text-yellow-300';
+    if (v >= 100) return 'text-orange-300';
+    return 'text-red-300';
+  }
+
+  liveCstatClass(): string {
+    const v = this.liveCstat();
+    if (v === null) return 'text-slate-500';
+    if (v > 50) return 'text-cyan-300';
+    if (v >= 35) return 'text-emerald-300';
+    return 'text-yellow-300';
+  }
+
   submit(): void {
     this.form.markAllAsTouched();
     if (this.form.invalid || !this.hasSelectedBed() || this.isLoading()) {
@@ -179,6 +283,12 @@ export class VentilatorForm implements OnInit {
       return;
     }
 
+    const activeShift = this.shiftService.activeShift();
+    if (!activeShift) {
+      this.setSubmitError('No hay un turno activo. No se pueden registrar evaluaciones.');
+      return;
+    }
+
     const v = this.form.value;
     const brand = this.selectedBrand();
     const extendedParameters: Record<string, unknown> =
@@ -188,7 +298,7 @@ export class VentilatorForm implements OnInit {
 
     const payload: CreateEvaluationRequest = {
       patientId: currentPatientId,
-      shiftId: PLACEHOLDER_SHIFT_ID,
+      shiftId: activeShift.id,
       physicalVentilatorId: PHYSICAL_VENTILATOR_IDS[brand],
       brand,
       f: v.f!,
@@ -300,9 +410,9 @@ export class VentilatorForm implements OnInit {
   }
 
   private resetClinicalFields(): void {
+    /* emitEvent: true so _formValues (toSignal from valueChanges) sees the reset */
     this.form.patchValue(
       { f: null, vt: null, fio2: null, pao2: null, peep: null, pplat: null, triggerFlow: null, inspTime: null },
-      { emitEvent: false }
     );
 
     ['f', 'vt', 'fio2', 'pao2', 'peep', 'pplat', 'triggerFlow', 'inspTime'].forEach(name => {
@@ -310,6 +420,8 @@ export class VentilatorForm implements OnInit {
       ctrl?.markAsPristine();
       ctrl?.markAsUntouched();
     });
+
+    this.activePreset.set(null);
   }
 
   private minMessage(controlName: NumericControl): string {

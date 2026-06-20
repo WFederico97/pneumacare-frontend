@@ -1,0 +1,110 @@
+<div class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm" (click)="handleClose()" aria-hidden="true"></div>
+
+<section
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="airway-modal-title"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4"
+>
+  <div class="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl" (click)="$event.stopPropagation()">
+    <header class="border-b border-slate-700/80 px-5 py-4">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="airway-modal-title" class="text-lg font-semibold text-slate-100">Registrar evento de vía aérea</h2>
+          <p class="mt-1 text-sm text-slate-400">Estado actual: {{ statusLabel() }}</p>
+        </div>
+        <button
+          type="button"
+          (click)="handleClose()"
+          class="min-h-[44px] rounded-md border border-slate-600 px-3 py-2 text-xs text-slate-300 transition-colors hover:border-cyan-400 hover:text-cyan-200"
+        >
+          ESC
+        </button>
+      </div>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-4 px-5 py-4">
+      @if (!hasAllowedType()) {
+        <p role="alert" class="rounded-md border border-amber-500/50 bg-amber-950/40 px-3 py-2 text-sm text-amber-100">
+          No hay transiciones de vía aérea válidas desde el estado actual ({{ statusLabel() }}).
+        </p>
+      }
+
+      <fieldset>
+        <legend class="mb-1 block text-xs font-medium text-slate-300">
+          Tipo de evento <span aria-hidden="true" class="text-red-400">*</span><span class="sr-only"> (obligatorio)</span>
+        </legend>
+        <div class="space-y-2">
+          @for (type of allTypes; track type) {
+            <label
+              class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
+              [class]="isTypeAllowed(type)
+                ? 'cursor-pointer border-slate-600 bg-slate-950 text-slate-100 hover:border-cyan-400'
+                : 'cursor-not-allowed border-slate-800 bg-slate-900/50 text-slate-600'"
+            >
+              <input
+                type="radio"
+                formControlName="eventType"
+                [value]="type"
+                [disabled]="!isTypeAllowed(type)"
+                class="accent-cyan-500"
+              >
+              <span>{{ typeLabel(type) }}</span>
+              @if (!isTypeAllowed(type)) {
+                <span class="ml-auto text-xs text-slate-600">no disponible</span>
+              }
+            </label>
+          }
+        </div>
+        @if (isInvalid('eventType')) {
+          <p role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            Selecciona un tipo de evento.
+          </p>
+        }
+      </fieldset>
+
+      <div>
+        <label for="airway-event-time" class="mb-1 block text-xs font-medium text-slate-300">
+          Fecha y hora del evento <span aria-hidden="true" class="text-red-400">*</span><span class="sr-only"> (obligatorio)</span>
+        </label>
+        <input
+          id="airway-event-time"
+          type="datetime-local"
+          formControlName="eventTimestamp"
+          aria-required="true"
+          [attr.aria-invalid]="isInvalid('eventTimestamp') ? 'true' : null"
+          class="min-h-[44px] w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+        >
+        @if (isInvalid('eventTimestamp')) {
+          <p role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            La fecha y hora son obligatorias.
+          </p>
+        }
+      </div>
+
+      @if (submitError()) {
+        <p role="alert" class="rounded-md border border-red-500/70 bg-red-950/60 px-3 py-2 text-sm text-red-100">
+          {{ submitError() }}
+        </p>
+      }
+
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button
+          type="button"
+          (click)="handleClose()"
+          [disabled]="isSubmitting()"
+          class="min-h-[44px] rounded-lg border border-slate-600 px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="!canSubmit()"
+          class="min-h-[44px] rounded-lg border border-cyan-500/70 bg-cyan-700 px-3 py-2 text-sm font-semibold text-cyan-50 transition-colors enabled:hover:bg-cyan-600 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
+        >
+          @if (isSubmitting()) { Guardando... } @else { Registrar evento }
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

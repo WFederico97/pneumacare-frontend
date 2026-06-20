@@ -43,3 +43,7 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 /front-template/
+
+# Claude Code
+CLAUDE.md
+.claude/

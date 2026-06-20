@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit, inject, input, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, afterNextRender, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { IcuBed } from '../../core/models/icu-bed.model';
 import { IdentifierType } from '../../core/models/identifier-type.model';
@@ -7,6 +7,9 @@ import { PatientService } from '../../core/services/patient.service';
 
 const DEV_DEFAULT_ICU_ID = 'cccccccc-0000-0000-0000-000000000001';
 const DNI_PATTERN = /^[0-9]{7,8}$/;
+
+const FOCUSABLE_SELECTOR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 @Component({
   selector: 'app-admission-modal',
@@ -19,6 +22,10 @@ export class AdmissionModal implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly patientService = inject(PatientService);
   private readonly identifierTypeService = inject(IdentifierTypeService);
+  private readonly el = inject(ElementRef<HTMLElement>);
+
+  /** Element that had focus before the modal opened — restored on close. */
+  private readonly previousFocus = document.activeElement as HTMLElement | null;
 
   readonly selectedBed = input<IcuBed | null>(null);
   readonly close = output<void>();
@@ -50,9 +57,14 @@ export class AdmissionModal implements OnInit {
   });
 
   constructor() {
-    // Swap identifier validators whenever the selected type changes.
     this.form.controls.identifierTypeId.valueChanges.subscribe(typeId => {
       this.updateIdentifierValidators(typeId);
+    });
+
+    /* WCAG 2.4.3 — autofocus first field after render */
+    afterNextRender(() => {
+      const first = this.el.nativeElement.querySelector(FOCUSABLE_SELECTOR) as HTMLElement | null;
+      first?.focus();
     });
   }
 
@@ -61,8 +73,6 @@ export class AdmissionModal implements OnInit {
       next: response => {
         this.identifierTypes.set(response.data);
         if (response.data.length > 0) {
-          // Setting the value here triggers valueChanges → updateIdentifierValidators,
-          // which now finds the first type in the populated signal.
           this.form.controls.identifierTypeId.setValue(response.data[0].id);
         }
         this.identifierTypesLoading.set(false);
@@ -73,15 +83,44 @@ export class AdmissionModal implements OnInit {
     });
   }
 
+  /* WCAG 2.1.1 — close on Escape */
   @HostListener('document:keydown.escape')
   onEsc(): void {
     this.handleClose();
   }
 
-  handleClose(): void {
-    if (this.isSubmitting()) {
-      return;
+  /* WCAG 2.1.1 / 2.4.3 — trap Tab focus inside modal */
+  @HostListener('keydown', ['$event'])
+  onKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Tab') return;
+
+    const nodes = this.el.nativeElement.querySelectorAll(FOCUSABLE_SELECTOR);
+    const focusable = (Array.from(nodes) as HTMLElement[]).filter(
+      (node) => !node.closest('[aria-hidden="true"]'),
+    );
+
+    if (focusable.length === 0) return;
+
+    const first: HTMLElement = focusable[0];
+    const last: HTMLElement = focusable[focusable.length - 1];
+
+    if (event.shiftKey) {
+      if (document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      }
+    } else {
+      if (document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
+  }
+
+  handleClose(): void {
+    if (this.isSubmitting()) return;
+    /* WCAG 2.4.3 — restore focus to the trigger element */
+    this.previousFocus?.focus();
     this.close.emit();
   }
 
@@ -91,9 +130,7 @@ export class AdmissionModal implements OnInit {
     this.submitError.set(null);
 
     const bed = this.selectedBed();
-    if (!bed || this.form.invalid || this.isSubmitting()) {
-      return;
-    }
+    if (!bed || this.form.invalid || this.isSubmitting()) return;
 
     const splitName = this.splitName(this.form.controls.fullName.value);
     if (!splitName) {
@@ -125,6 +162,7 @@ export class AdmissionModal implements OnInit {
         next: response => {
           this.admitted.emit({ bedId: bed.bedId, patientId: response.data.patientId });
           this.isSubmitting.set(false);
+          this.previousFocus?.focus();
           this.close.emit();
         },
         error: () => {
@@ -143,7 +181,6 @@ export class AdmissionModal implements OnInit {
     return this.form.valid && !this.isSubmitting();
   }
 
-  /** Returns true when the currently selected identifier type is DNI. */
   isDniSelected(): boolean {
     const selectedId = this.form.controls.identifierTypeId.value;
     return this.identifierTypes().some(
@@ -165,9 +202,7 @@ export class AdmissionModal implements OnInit {
   private splitName(rawName: string): { firstName: string; lastName: string } | null {
     const normalized = rawName.trim().replace(/\s+/g, ' ');
     const parts = normalized.split(' ');
-    if (parts.length < 2) {
-      return null;
-    }
+    if (parts.length < 2) return null;
     return {
       firstName: parts[0],
       lastName: parts.slice(1).join(' '),
@@ -176,23 +211,16 @@ export class AdmissionModal implements OnInit {
 
   private resolveIcuId(): string | null {
     const token = localStorage.getItem('access_token');
-    if (!token) {
-      return DEV_DEFAULT_ICU_ID;
-    }
+    if (!token) return DEV_DEFAULT_ICU_ID;
 
     try {
       const payloadPart = token.split('.')[1];
-      if (!payloadPart) {
-        return DEV_DEFAULT_ICU_ID;
-      }
+      if (!payloadPart) return DEV_DEFAULT_ICU_ID;
       const normalized = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
       const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
       const payloadText = atob(padded);
       const payload = JSON.parse(payloadText) as { icu_id?: unknown };
-
-      if (typeof payload.icu_id === 'string' && payload.icu_id.length > 0) {
-        return payload.icu_id;
-      }
+      if (typeof payload.icu_id === 'string' && payload.icu_id.length > 0) return payload.icu_id;
       return DEV_DEFAULT_ICU_ID;
     } catch {
       return DEV_DEFAULT_ICU_ID;
