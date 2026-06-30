@@ -4,6 +4,7 @@ import { IcuBed } from '../../core/models/icu-bed.model';
 import { IdentifierType } from '../../core/models/identifier-type.model';
 import { IdentifierTypeService } from '../../core/services/identifier-type.service';
 import { PatientService } from '../../core/services/patient.service';
+import { IcuBedsService } from '../../core/services/icu-beds.service';
 
 const DEV_DEFAULT_ICU_ID = 'cccccccc-0000-0000-0000-000000000001';
 const DNI_PATTERN = /^[0-9]{7,8}$/;
@@ -22,6 +23,7 @@ export class AdmissionModal implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly patientService = inject(PatientService);
   private readonly identifierTypeService = inject(IdentifierTypeService);
+  private readonly icuBedsService = inject(IcuBedsService);
   private readonly el = inject(ElementRef<HTMLElement>);
 
   /** Element that had focus before the modal opened — restored on close. */
@@ -36,6 +38,9 @@ export class AdmissionModal implements OnInit {
   readonly nameError = signal<string | null>(null);
   readonly identifierTypes = signal<IdentifierType[]>([]);
   readonly identifierTypesLoading = signal(true);
+  /** Available beds for the standalone (no preselected bed) flow. */
+  readonly availableBeds = signal<IcuBed[]>([]);
+  readonly pickedBedId = signal<string | null>(null);
 
   readonly form = this.formBuilder.group({
     fullName: this.formBuilder.control('', {
@@ -81,6 +86,19 @@ export class AdmissionModal implements OnInit {
         this.identifierTypesLoading.set(false);
       },
     });
+
+    // Standalone flow (quick-entry): load the available beds to pick from.
+    if (!this.selectedBed()) {
+      this.icuBedsService.getBeds().subscribe({
+        next: beds => this.availableBeds.set(beds.filter(b => b.status === 'AVAILABLE')),
+        error: () => {},
+      });
+    }
+  }
+
+  /** The bed the patient is admitted to — preselected input, or the picked one. */
+  resolvedBedId(): string | null {
+    return this.selectedBed()?.bedId ?? this.pickedBedId();
   }
 
   /* WCAG 2.1.1 — close on Escape */
@@ -129,8 +147,8 @@ export class AdmissionModal implements OnInit {
     this.nameError.set(null);
     this.submitError.set(null);
 
-    const bed = this.selectedBed();
-    if (!bed || this.form.invalid || this.isSubmitting()) return;
+    const bedId = this.resolvedBedId();
+    if (!bedId || this.form.invalid || this.isSubmitting()) return;
 
     const splitName = this.splitName(this.form.controls.fullName.value);
     if (!splitName) {
@@ -156,11 +174,11 @@ export class AdmissionModal implements OnInit {
           value: this.form.controls.identifier.value.trim(),
         },
         icuId,
-        bedId: bed.bedId,
+        bedId,
       })
       .subscribe({
         next: response => {
-          this.admitted.emit({ bedId: bed.bedId, patientId: response.data.patientId });
+          this.admitted.emit({ bedId, patientId: response.data.patientId });
           this.isSubmitting.set(false);
           this.previousFocus?.focus();
           this.close.emit();
@@ -178,7 +196,7 @@ export class AdmissionModal implements OnInit {
   }
 
   canSubmit(): boolean {
-    return this.form.valid && !this.isSubmitting();
+    return this.form.valid && this.resolvedBedId() !== null && !this.isSubmitting();
   }
 
   isDniSelected(): boolean {
@@ -209,21 +227,15 @@ export class AdmissionModal implements OnInit {
     };
   }
 
+  /**
+   * Resolves the ICU the patient is admitted to.
+   *
+   * <p>Auth is now cookie-based (PNMC-113): the JWT lives in an HttpOnly cookie
+   * the SPA cannot read, so the ICU can no longer be derived client-side. The
+   * server owns the authenticated actor and should bind admissions to its ICU;
+   * until that lands this falls back to the seeded dev ICU.
+   */
   private resolveIcuId(): string | null {
-    const token = localStorage.getItem('access_token');
-    if (!token) return DEV_DEFAULT_ICU_ID;
-
-    try {
-      const payloadPart = token.split('.')[1];
-      if (!payloadPart) return DEV_DEFAULT_ICU_ID;
-      const normalized = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
-      const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
-      const payloadText = atob(padded);
-      const payload = JSON.parse(payloadText) as { icu_id?: unknown };
-      if (typeof payload.icu_id === 'string' && payload.icu_id.length > 0) return payload.icu_id;
-      return DEV_DEFAULT_ICU_ID;
-    } catch {
-      return DEV_DEFAULT_ICU_ID;
-    }
+    return DEV_DEFAULT_ICU_ID;
   }
 }

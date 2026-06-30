@@ -15,7 +15,7 @@
             @if (selectedBed()) {
               Cama {{ selectedBed()?.bedNumber }}
             } @else {
-              Cama seleccionada
+              Seleccioná una cama disponible
             }
           </p>
         </div>
@@ -30,6 +30,26 @@
     </header>
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-4 px-5 py-4">
+      @if (!selectedBed()) {
+        <div>
+          <label for="bedPick" class="mb-1 block text-xs font-medium text-slate-300">
+            Cama disponible <span aria-hidden="true" class="text-red-400">*</span><span class="sr-only"> (obligatorio)</span>
+          </label>
+          <select
+            id="bedPick"
+            aria-required="true"
+            [value]="pickedBedId() ?? ''"
+            (change)="pickedBedId.set($any($event.target).value || null)"
+            class="min-h-[44px] w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+          >
+            <option value="" disabled>Seleccioná una cama…</option>
+            @for (bed of availableBeds(); track bed.bedId) {
+              <option [value]="bed.bedId">{{ bed.bedNumber }}</option>
+            }
+          </select>
+        </div>
+      }
+
       <div>
         <label for="fullName" class="mb-1 block text-xs font-medium text-slate-300">
           Nombre completo <span aria-hidden="true" class="text-red-400">*</span><span class="sr-only"> (obligatorio)</span>
