@@ -1,0 +1,66 @@
+<button
+  #trigger
+  type="button"
+  (click)="toggle()"
+  (keydown.arrowdown)="$event.preventDefault(); open(true)"
+  [attr.aria-expanded]="isOpen()"
+  aria-haspopup="menu"
+  [attr.aria-label]="'Cuenta de ' + displayName()"
+  class="flex items-center gap-2 rounded-full border border-slate-700 bg-slate-950/60 py-1 pl-1 pr-2.5 text-left transition-colors hover:border-cyan-500/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+>
+  <span
+    class="flex h-9 w-9 items-center justify-center rounded-full border border-cyan-500/30 bg-cyan-500/20 font-mono text-xs font-bold text-cyan-100"
+    aria-hidden="true"
+  >
+    {{ initials() }}
+  </span>
+  <span class="hidden flex-col leading-tight sm:flex">
+    <span class="text-xs font-semibold text-slate-100">{{ displayName() }}</span>
+    <span class="text-[11px] text-slate-400">{{ roleText() }}</span>
+  </span>
+  <span
+    class="hidden text-slate-500 transition-transform sm:inline"
+    [class.rotate-180]="isOpen()"
+    aria-hidden="true"
+  >▾</span>
+</button>
+
+@if (isOpen()) {
+  <div
+    role="menu"
+    [attr.aria-label]="'Opciones de ' + displayName()"
+    class="absolute right-0 top-full z-40 mt-2 w-60 origin-top-right overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl"
+  >
+    <div class="border-b border-slate-800 px-4 py-3">
+      <p class="truncate text-sm font-semibold text-slate-100">{{ displayName() }}</p>
+      <p class="mt-0.5 truncate text-xs text-slate-400">{{ roleText() }}</p>
+    </div>
+
+    <div class="py-1">
+      <a
+        #menuItem
+        role="menuitem"
+        routerLink="/account"
+        (click)="close()"
+        (keydown)="onMenuKeydown($event, 0)"
+        class="flex min-h-11 items-center px-4 text-sm text-slate-200 transition-colors hover:bg-slate-800 focus-visible:bg-slate-800 focus-visible:outline-none"
+      >
+        Mi cuenta
+      </a>
+    </div>
+
+    <div class="border-t border-slate-800 py-1">
+      <button
+        #menuItem
+        role="menuitem"
+        type="button"
+        (click)="logout()"
+        (keydown)="onMenuKeydown($event, 1)"
+        [disabled]="isLoggingOut()"
+        class="flex min-h-11 w-full items-center px-4 text-left text-sm font-medium text-rose-300 transition-colors hover:bg-rose-950/40 focus-visible:bg-rose-950/40 focus-visible:outline-none disabled:opacity-60"
+      >
+        {{ isLoggingOut() ? 'Cerrando sesión…' : 'Cerrar sesión' }}
+      </button>
+    </div>
+  </div>
+}

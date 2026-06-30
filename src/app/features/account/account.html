@@ -1,0 +1,79 @@
+<app-shell>
+  <section id="main-content" tabindex="-1" class="mx-auto w-full max-w-3xl px-6 py-8">
+      <header class="mb-6">
+        <h1 class="text-xl font-semibold text-slate-100">Mi cuenta</h1>
+        <p class="mt-1 text-sm text-slate-400">Tu perfil y la sesión activa en PneumaCare.</p>
+      </header>
+
+      <!-- Mi perfil -->
+      <section
+        id="perfil"
+        tabindex="-1"
+        aria-labelledby="perfil-title"
+        class="mb-6 rounded-2xl border border-slate-700/70 bg-slate-900/80 p-6 shadow-xl"
+      >
+        <h2 id="perfil-title" class="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Mi perfil</h2>
+
+        <div class="flex items-center gap-4">
+          <span
+            class="flex h-14 w-14 items-center justify-center rounded-full border border-cyan-500/30 bg-cyan-500/20 font-mono text-lg font-bold text-cyan-100"
+            aria-hidden="true"
+          >
+            {{ initials() }}
+          </span>
+          <div>
+            <p class="text-base font-semibold text-slate-100">{{ displayName() }}</p>
+            <div class="mt-1.5 flex flex-wrap gap-1.5">
+              @for (role of roles(); track role) {
+                <span class="rounded-full border border-cyan-500/30 bg-cyan-950/50 px-2 py-0.5 text-[11px] font-medium text-cyan-200">
+                  {{ role }}
+                </span>
+              } @empty {
+                <span class="text-sm text-slate-400">Sin rol asignado</span>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mi cuenta -->
+      <section
+        id="cuenta"
+        tabindex="-1"
+        aria-labelledby="cuenta-title"
+        class="rounded-2xl border border-slate-700/70 bg-slate-900/80 p-6 shadow-xl"
+      >
+        <h2 id="cuenta-title" class="mb-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Mi cuenta</h2>
+
+        <dl class="divide-y divide-slate-800 text-sm">
+          <div class="flex items-center justify-between py-2.5">
+            <dt class="text-slate-400">Sesión</dt>
+            <dd class="flex items-center gap-2 text-slate-200">
+              <span class="h-2 w-2 rounded-full bg-emerald-400" aria-hidden="true"></span>
+              Activa
+            </dd>
+          </div>
+          <div class="flex items-center justify-between py-2.5">
+            <dt class="text-slate-400">Edición de datos</dt>
+            <dd class="text-slate-400">Próximamente</dd>
+          </div>
+        </dl>
+
+        <div class="mt-6 border-t border-slate-800 pt-5">
+          <button
+            type="button"
+            (click)="logout()"
+            [disabled]="isLoggingOut()"
+            class="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-rose-500/50 bg-rose-950/30 px-4 py-2 text-sm font-semibold text-rose-200 transition-colors hover:bg-rose-950/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          >
+            @if (isLoggingOut()) {
+              <span class="h-4 w-4 animate-spin rounded-full border-2 border-rose-200/40 border-t-rose-100" aria-hidden="true"></span>
+              <span>Cerrando sesión…</span>
+            } @else {
+              <span>Cerrar sesión</span>
+            }
+          </button>
+        </div>
+      </section>
+  </section>
+</app-shell>

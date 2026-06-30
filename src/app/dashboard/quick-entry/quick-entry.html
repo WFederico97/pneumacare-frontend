@@ -1,0 +1,50 @@
+<!-- Quick action: create a bed (admit/evaluate are done from the bed grid). -->
+<div class="flex items-center justify-between gap-3 rounded-2xl border border-slate-700/70 bg-slate-900/80 p-4 shadow-xl">
+  <p class="text-sm text-slate-400">Seleccioná una cama del tablero para admitir o evaluar.</p>
+  <button
+    type="button"
+    (click)="open()"
+    class="min-h-11 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-cyan-50 transition-colors hover:bg-cyan-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+  >
+    + Nueva cama
+  </button>
+</div>
+
+@if (isOpen()) {
+  <div class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm" (click)="close()" aria-hidden="true"></div>
+  <section role="dialog" aria-modal="true" aria-labelledby="qe-bed-title" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl" (click)="$event.stopPropagation()">
+      <header class="flex items-center justify-between border-b border-slate-700/80 px-5 py-4">
+        <h2 id="qe-bed-title" class="text-lg font-semibold text-slate-100">Nueva cama</h2>
+        <button type="button" (click)="close()" class="min-h-11 rounded-md border border-slate-600 px-3 py-2 text-xs text-slate-300 hover:border-cyan-400 hover:text-cyan-200">ESC</button>
+      </header>
+      <form [formGroup]="bedForm" (ngSubmit)="createBed()" novalidate class="space-y-4 px-5 py-4">
+        <div>
+          <label for="qe-bedNumber" class="mb-1 block text-xs font-medium text-slate-300">Número o nombre de cama</label>
+          <input
+            id="qe-bedNumber"
+            type="text"
+            formControlName="bedNumber"
+            [placeholder]="'Ej: ' + suggestion()"
+            class="min-h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+          >
+          @if (bedForm.controls.bedNumber.touched && bedForm.controls.bedNumber.invalid) {
+            <p role="alert" class="mt-1 text-xs font-medium text-red-300">El número de cama es obligatorio.</p>
+          }
+        </div>
+        @if (bedError()) {
+          <p role="alert" class="rounded-md border border-red-500/70 bg-red-950/60 px-3 py-2 text-sm text-red-100">{{ bedError() }}</p>
+        }
+        @if (bedCreated()) {
+          <p role="status" class="rounded-md border border-emerald-500/70 bg-emerald-950/50 px-3 py-2 text-sm text-emerald-100">Cama {{ bedCreated() }} creada.</p>
+        }
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" (click)="close()" class="min-h-11 rounded-lg border border-slate-600 px-3 py-2 text-sm font-medium text-slate-200 hover:border-slate-500">Cerrar</button>
+          <button type="submit" [disabled]="bedForm.invalid || isCreatingBed()" class="min-h-11 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-cyan-50 hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-50">
+            {{ isCreatingBed() ? 'Guardando…' : 'Crear cama' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+}

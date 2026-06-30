@@ -209,21 +209,15 @@ export class AdmissionModal implements OnInit {
     };
   }
 
+  /**
+   * Resolves the ICU the patient is admitted to.
+   *
+   * <p>Auth is cookie-based: the JWT lives in an HttpOnly cookie the SPA cannot
+   * read, so the ICU can no longer be derived client-side. The server owns the
+   * authenticated actor and should bind admissions to its ICU; until that lands
+   * this falls back to the seeded dev ICU.
+   */
   private resolveIcuId(): string | null {
-    const token = localStorage.getItem('access_token');
-    if (!token) return DEV_DEFAULT_ICU_ID;
-
-    try {
-      const payloadPart = token.split('.')[1];
-      if (!payloadPart) return DEV_DEFAULT_ICU_ID;
-      const normalized = payloadPart.replace(/-/g, '+').replace(/_/g, '/');
-      const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
-      const payloadText = atob(padded);
-      const payload = JSON.parse(payloadText) as { icu_id?: unknown };
-      if (typeof payload.icu_id === 'string' && payload.icu_id.length > 0) return payload.icu_id;
-      return DEV_DEFAULT_ICU_ID;
-    } catch {
-      return DEV_DEFAULT_ICU_ID;
-    }
+    return DEV_DEFAULT_ICU_ID;
   }
 }
