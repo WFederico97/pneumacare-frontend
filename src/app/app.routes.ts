@@ -47,6 +47,13 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'patients',
+    loadComponent: () => import('./features/patients/patients').then(m => m.Patients),
+    title: 'Pacientes | PneumaCare',
+    pathMatch: 'full',
+    canActivate: [authGuard],
+  },
+  {
     path: 'patients/:id',
     loadComponent: () =>
       import('./patient-detail/patient-detail').then(m => m.PatientDetail),
