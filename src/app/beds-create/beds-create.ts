@@ -1,14 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Navbar } from '../dashboard/navbar/navbar';
-import { Sidebar } from '../dashboard/sidebar/sidebar';
+import { AppShell } from '../dashboard/app-shell/app-shell';
 import { IcuBed } from '../core/models/icu-bed.model';
 import { IcuBedsService } from '../core/services/icu-beds.service';
 
 @Component({
   selector: 'app-beds-create',
-  imports: [ReactiveFormsModule, RouterLink, Navbar, Sidebar],
+  imports: [ReactiveFormsModule, RouterLink, AppShell],
   templateUrl: './beds-create.html',
   styleUrl: './beds-create.css',
   host: { class: 'block' },

@@ -1,18 +1,5 @@
-<main class="min-h-screen bg-slate-950">
-  <!-- Skip-to-content: WCAG 2.4.1 -->
-  <a
-    href="#main-content"
-    class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-cyan-700 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-cyan-50"
-  >
-    Ir al contenido principal
-  </a>
-
-  <app-dashboard-sidebar />
-
-  <div class="ml-20 flex min-h-screen flex-col">
-    <app-dashboard-navbar />
-
-    <section id="main-content" tabindex="-1" class="mx-auto w-full max-w-3xl px-6 py-8">
+<app-shell>
+  <section id="main-content" tabindex="-1" class="mx-auto w-full max-w-3xl px-6 py-8">
       <div class="mb-6 flex items-center justify-between gap-4">
         <div>
           <h1 class="text-xl font-semibold text-slate-100">Nueva cama UCI</h1>
@@ -80,6 +67,5 @@
           </p>
         }
       </section>
-    </section>
-  </div>
-</main>
+  </section>
+</app-shell>

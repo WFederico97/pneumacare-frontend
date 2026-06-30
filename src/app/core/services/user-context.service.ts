@@ -1,30 +1,20 @@
-import { Injectable, computed, signal } from '@angular/core';
-
-export type UserRole = 'ROLE_CHIEF_OF_GUARD' | 'ROLE_THERAPIST';
+import { Injectable, computed, inject } from '@angular/core';
+import { AuthService } from '../auth/auth.service';
 
 /**
- * Minimal role context for the UI (PNMC-93).
+ * Role context for the UI, derived from the authenticated session.
  *
- * <p>Authentication/login is not implemented yet (a separate backlog effort), so
- * this is a temporary seam — the same role the JWT will eventually carry. It reads
- * an optional {@code pnmc_role} override from localStorage and otherwise defaults to
- * {@code ROLE_CHIEF_OF_GUARD} so the shift open/close control is visible in dev.
- * When auth lands, only this service changes — components keep reading {@link isChief}.
+ * <p>Originally a localStorage placeholder used before authentication existed
+ * (PNMC-93); now that {@link AuthService} carries the real roles from the
+ * session cookie, this reads from there. Consumers keep reading {@link isChief}.
  */
 @Injectable({ providedIn: 'root' })
 export class UserContext {
-  readonly role = signal<UserRole>(this.resolveInitialRole());
+  private readonly auth = inject(AuthService);
 
-  /** Only the Chief of Guard may open/close shifts (AC4). */
-  readonly isChief = computed(() => this.role() === 'ROLE_CHIEF_OF_GUARD');
-
-  private resolveInitialRole(): UserRole {
-    if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem('pnmc_role');
-      if (stored === 'ROLE_THERAPIST' || stored === 'ROLE_CHIEF_OF_GUARD') {
-        return stored;
-      }
-    }
-    return 'ROLE_CHIEF_OF_GUARD';
-  }
+  /**
+   * Only the Chief of Guard may open/close shifts. Admins inherit the chief
+   * capability, matching the backend role hierarchy.
+   */
+  readonly isChief = computed(() => this.auth.hasAnyRole('ROLE_CHIEF_OF_GUARD', 'ROLE_ADMIN'));
 }
