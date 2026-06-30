@@ -25,7 +25,7 @@
             id="qe-bedNumber"
             type="text"
             formControlName="bedNumber"
-            placeholder="Ej: BED-004"
+            [placeholder]="'Ej: ' + suggestion()"
             class="min-h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
           >
           @if (bedForm.controls.bedNumber.touched && bedForm.controls.bedNumber.invalid) {

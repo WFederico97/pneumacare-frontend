@@ -23,7 +23,7 @@
               id="bedNumber"
               type="text"
               formControlName="bedNumber"
-              placeholder="Ej: BED-004"
+              [placeholder]="'Ej: ' + suggestion()"
               aria-required="true"
               [attr.aria-invalid]="isInvalidBedNumber()"
               [attr.aria-describedby]="isInvalidBedNumber() ? 'bedNumber-error' : null"
@@ -35,6 +35,8 @@
                   El número de cama es obligatorio.
                 } @else if (form.controls.bedNumber.errors?.['maxlength']) {
                   El número de cama no debe superar 50 caracteres.
+                } @else if (form.controls.bedNumber.errors?.['duplicate']) {
+                  Ya existe una cama con ese número.
                 } @else {
                   Valor inválido.
                 }
