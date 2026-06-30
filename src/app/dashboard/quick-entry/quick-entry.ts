@@ -1,27 +1,17 @@
 import { Component, HostListener, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AdmissionModal } from '../admission-modal/admission-modal';
-import { VentilatorForm } from '../ventilator-form/ventilator-form';
 import { IcuBedsService } from '../../core/services/icu-beds.service';
-import { IcuBed } from '../../core/models/icu-bed.model';
-
-type QuickModal = 'bed' | 'patient' | 'calc' | null;
 
 /**
- * Operational quick-entry panel: three actions, each opening a focused modal
- * with the context picker it needs.
+ * Dashboard quick action: create a new ICU bed without leaving the dashboard.
  *
- * <ul>
- *   <li><b>Cama</b> — inline bed-number form ({@link IcuBedsService#createBed}).</li>
- *   <li><b>Paciente</b> — the {@link AdmissionModal} in standalone mode (its own
- *       available-bed picker).</li>
- *   <li><b>Cálculo</b> — an occupied-bed/patient picker, then the existing
- *       {@link VentilatorForm} bound to that patient.</li>
- * </ul>
+ * <p>Admitting a patient and recording an evaluation are handled by clicking a
+ * bed in the grid (available → admit, occupied → evaluate); bed creation has no
+ * grid equivalent, so it lives here as the one quick action.
  */
 @Component({
   selector: 'app-quick-entry',
-  imports: [ReactiveFormsModule, AdmissionModal, VentilatorForm],
+  imports: [ReactiveFormsModule],
   templateUrl: './quick-entry.html',
   styleUrl: './quick-entry.css',
   host: { class: 'block' },
@@ -30,11 +20,7 @@ export class QuickEntry {
   private readonly formBuilder = inject(FormBuilder);
   private readonly icuBedsService = inject(IcuBedsService);
 
-  readonly active = signal<QuickModal>(null);
-  readonly occupiedBeds = signal<IcuBed[]>([]);
-  readonly pickedPatientId = signal<string | null>(null);
-  readonly pickedBedNumber = signal<string | null>(null);
-
+  readonly isOpen = signal(false);
   readonly isCreatingBed = signal(false);
   readonly bedError = signal<string | null>(null);
   readonly bedCreated = signal<string | null>(null);
@@ -46,32 +32,16 @@ export class QuickEntry {
     }),
   });
 
-  open(which: QuickModal): void {
-    this.active.set(which);
+  open(): void {
     this.bedError.set(null);
     this.bedCreated.set(null);
-    this.pickedPatientId.set(null);
-    this.pickedBedNumber.set(null);
-    if (which === 'bed') {
-      this.bedForm.reset({ bedNumber: '' });
-    }
-    if (which === 'calc') {
-      this.icuBedsService.getBeds().subscribe({
-        next: (beds) => this.occupiedBeds.set(beds.filter((b) => b.status === 'OCCUPIED' && b.patientId)),
-        error: () => this.occupiedBeds.set([]),
-      });
-    }
+    this.bedForm.reset({ bedNumber: '' });
+    this.isOpen.set(true);
   }
 
   @HostListener('document:keydown.escape')
   close(): void {
-    this.active.set(null);
-  }
-
-  pickPatient(bedId: string): void {
-    const bed = this.occupiedBeds().find((b) => b.bedId === bedId);
-    this.pickedPatientId.set(bed?.patientId ?? null);
-    this.pickedBedNumber.set(bed?.bedNumber ?? null);
+    this.isOpen.set(false);
   }
 
   createBed(): void {
