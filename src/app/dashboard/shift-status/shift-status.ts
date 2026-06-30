@@ -74,7 +74,7 @@ export class ShiftStatus implements OnInit {
     this.shiftService.openShift(ShiftStatus.DEV_ICU_ID).subscribe({
       next: () => {
         this.isActionInFlight.set(false);
-        this.shiftService.refresh();
+        this.shiftService.refresh(true);
       },
       error: (err: HttpErrorResponse) => {
         this.isActionInFlight.set(false);
@@ -94,7 +94,7 @@ export class ShiftStatus implements OnInit {
     this.shiftService.closeShift(shift.id).subscribe({
       next: () => {
         this.isActionInFlight.set(false);
-        this.shiftService.refresh();
+        this.shiftService.refresh(true);
       },
       error: (err: HttpErrorResponse) => {
         this.isActionInFlight.set(false);
