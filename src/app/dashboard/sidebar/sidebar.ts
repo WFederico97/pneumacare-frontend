@@ -25,9 +25,8 @@ export class Sidebar {
 
   private readonly allItems: readonly NavItem[] = [
     { label: 'Tablero', short: 'TB', route: '/', exact: true },
-    { label: 'Pacientes', short: 'PC' },
+    { label: 'Pacientes', short: 'PC', route: '/patients' },
     { label: 'Camas', short: 'CM', route: '/beds/new' },
-    { label: 'Destete', short: 'DT' },
     { label: 'Alertas', short: 'AL' },
     { label: 'Analítica', short: 'AN', route: '/analytics' },
     { label: 'Usuarios', short: 'US', route: '/users', roles: ['ROLE_ADMIN', 'ROLE_CHIEF_OF_GUARD'] },
