@@ -5,6 +5,7 @@ import { BedsDashboard } from '../dashboard/beds-dashboard/beds-dashboard';
 import { DetailPanel } from '../dashboard/detail-panel/detail-panel';
 import { IcuBed } from '../core/models/icu-bed.model';
 import { AdmissionModal } from '../dashboard/admission-modal/admission-modal';
+import { QuickEntry } from '../dashboard/quick-entry/quick-entry';
 import { KpiCard } from '../features/analytics/widgets/kpi-card/kpi-card';
 import { BreakdownBar, BreakdownSegment } from '../features/analytics/widgets/breakdown-bar/breakdown-bar';
 import { AnalyticsService } from '../core/services/analytics.service';
@@ -12,7 +13,7 @@ import { AnalyticsSummary } from '../core/models/analytics.model';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, AppShell, BedsDashboard, DetailPanel, AdmissionModal, KpiCard, BreakdownBar],
+  imports: [RouterLink, AppShell, BedsDashboard, DetailPanel, AdmissionModal, QuickEntry, KpiCard, BreakdownBar],
   templateUrl: './home.html',
   styleUrl: './home.css',
   host: { class: 'block' }

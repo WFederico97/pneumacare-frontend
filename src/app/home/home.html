@@ -1,4 +1,8 @@
 <app-shell>
+  <div class="px-6 pt-6">
+    <app-quick-entry />
+  </div>
+
   @if (analytics()?.clinical) {
     <section aria-label="Resumen de ocupación" class="grid gap-4 px-6 pt-6 sm:grid-cols-3">
       <app-kpi-card label="Ocupación" [value]="occupancyPct()" />
