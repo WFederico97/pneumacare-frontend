@@ -33,3 +33,4 @@ export interface PatientApiItem {
 
 export type CreatePatientApiResponse = ApiResponse<PatientApiItem>;
 export type GetPatientApiResponse = ApiResponse<PatientApiItem>;
+export type GetPatientsApiResponse = ApiResponse<PatientApiItem[]>;

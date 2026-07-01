@@ -29,11 +29,26 @@ export class ShiftService {
   /** True only when a shift is confirmed OPEN. Any error keeps this false. */
   readonly isShiftOpen = computed(() => !this.hasError() && this.activeShift() !== null);
 
+  /** Coalescing window: skip a network refresh if one resolved this recently. */
+  private static readonly TTL_MS = 10_000;
+  private lastFetch = 0;
+  private inFlight = false;
+
   /**
    * Fetches GET /api/v1/shifts/active into the store. Tolerates both the
    * envelope-with-null-data shape (our backend) and an empty 204 body.
+   *
+   * <p>The active shift is read by the header on every page and by clinical
+   * forms, so calls are coalesced: a refresh is skipped when one is in flight or
+   * resolved within {@link TTL_MS}. Pass {@code force} after an open/close to
+   * bypass the cache and reflect the change immediately.
    */
-  refresh(): void {
+  refresh(force = false): void {
+    const now = Date.now();
+    if (!force && (this.inFlight || now - this.lastFetch < ShiftService.TTL_MS)) {
+      return;
+    }
+    this.inFlight = true;
     this.isLoading.set(true);
     this.hasError.set(false);
 
@@ -43,11 +58,15 @@ export class ShiftService {
         next: (response) => {
           this.activeShift.set(response?.data ?? null);
           this.isLoading.set(false);
+          this.inFlight = false;
+          this.lastFetch = Date.now();
         },
         error: () => {
           this.activeShift.set(null);
           this.hasError.set(true);
           this.isLoading.set(false);
+          this.inFlight = false;
+          this.lastFetch = Date.now();
         },
       });
   }

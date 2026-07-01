@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CreatePatientApiResponse, CreatePatientRequest, GetPatientApiResponse } from '../models/patient.model';
+import { CreatePatientApiResponse, CreatePatientRequest, GetPatientApiResponse, GetPatientsApiResponse } from '../models/patient.model';
 
 @Injectable({ providedIn: 'root' })
 export class PatientService {
@@ -13,5 +13,9 @@ export class PatientService {
 
   getPatient(patientId: string): Observable<GetPatientApiResponse> {
     return this.http.get<GetPatientApiResponse>(`/api/v1/patients/${patientId}`);
+  }
+
+  getPatients(): Observable<GetPatientsApiResponse> {
+    return this.http.get<GetPatientsApiResponse>('/api/v1/patients');
   }
 }

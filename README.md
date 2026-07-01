@@ -41,19 +41,26 @@
 
 ## Features
 
-The UI implements the core end-to-end clinical workflow against the backend API:
+The UI implements the clinical workflow against the backend API:
 
 | Feature | Where | Backend endpoint |
 |---|---|---|
+| **Login / register / account** (cookie session) | `features/login`, `features/register`, `features/account` | `POST /api/v1/auth/login` · `/register` · `/logout` |
 | **Visualize ICU bed status** | `dashboard/beds-dashboard`, `beds-grid` | `GET /api/v1/icu-beds` |
 | **Create a bed** | `beds-create` (`/beds/new`) | `POST /api/v1/icu-beds` |
+| **Quick-entry panel** (beds / patients / calculations) | `dashboard/quick-entry` | various |
 | **Admit a patient** (PII-safe) | `dashboard/admission-modal` | `POST /api/v1/patients`, `GET /api/v1/identifier-types` |
+| **Patients list** (search) | `features/patients` (`/patients`) | `GET /api/v1/patients` |
+| **Patient clinical history** | `patient-detail` (`/patients/:id`) | `GET /api/v1/patients/{id}`, `…/timeline` |
 | **Submit a respiratory evaluation** | `dashboard/ventilator-form` | `POST /api/v1/evaluations` |
-| **Bed / patient detail** | `dashboard/detail-panel` | `GET /api/v1/patients/{id}` |
-| **Backend health indicator** | `dashboard/backend-service-card` | `GET /api/health` |
+| **Shift status** | `dashboard/shift-status` | `GET /api/v1/shifts/active` |
+| **Analytics** (role-aware) | `features/analytics` (`/analytics`) | `GET /api/v1/analytics/summary` |
+| **User administration** | `features/users` (`/users`, admin/chief only) | `GET/PUT/DELETE /api/v1/users` |
+| **Backend health indicator** | `dashboard/backend-service-card` | `GET /api/v1/health` |
 
-Routes are guarded by `core/guards/auth.guard.ts`. Static legal pages (terms, FAQ) are
-lazy-loaded under `legal/`.
+Routes are guarded by `core/auth/auth.guard.ts`; role-restricted routes (e.g. `/users`)
+add `core/auth/role.guard.ts`. An HTTP interceptor carries the session cookie and CSRF
+token. Static legal pages (terms, FAQ) are lazy-loaded under `legal/`.
 
 ---
 
@@ -64,22 +71,28 @@ src/
 ├── app/
 │   ├── app.ts                  Root component — inline template (<router-outlet />)
 │   ├── app.config.ts           ApplicationConfig with all providers
-│   ├── app.routes.ts           Top-level Routes array (+ lazy legal routes)
+│   ├── app.routes.ts           Top-level Routes array (+ lazy feature/legal routes)
 │   ├── core/
-│   │   ├── guards/             Route guards (auth.guard.ts)
+│   │   ├── auth/               auth.guard.ts, role.guard.ts, cookie/CSRF interceptor
 │   │   ├── models/             TS interfaces mirroring backend DTOs
-│   │   │                       (icu-bed, patient, evaluation, identifier-type, health)
-│   │   └── services/           @Injectable({ providedIn: 'root' }) HTTP services
-│   │                           (icu-beds, patient, evaluation, identifier-type, health)
-│   ├── home/                   Landing page
+│   │   └── services/           @Injectable({ providedIn: 'root' }) HTTP services — one per
+│   │                           resource: icu-beds, patient, evaluation, identifier-type,
+│   │                           health, analytics, procedure, shift, timeline, user-admin,
+│   │                           plus user-context (current-user signal state)
+│   ├── home/                   Main dashboard page (orchestrates dashboard/ subcomponents)
 │   ├── dashboard/              ICU dashboard shell + components:
-│   │   ├── navbar/  sidebar/   Layout chrome
-│   │   ├── beds-dashboard/     Bed-status overview
-│   │   ├── beds-grid/          Bed grid rendering
+│   │   ├── app-shell/          Shared shell (navbar, sidebar, user-menu)
+│   │   ├── navbar/ sidebar/ user-menu/  Layout chrome + role-aware nav
+│   │   ├── beds-dashboard/ beds-grid/   Bed-status overview + grid
 │   │   ├── admission-modal/    Patient admission form
 │   │   ├── ventilator-form/    Respiratory evaluation form
+│   │   ├── quick-entry/        Beds / patients / calculations quick-entry panel
+│   │   ├── shift-status/       Active-shift indicator
 │   │   ├── detail-panel/       Selected bed / patient detail
 │   │   └── backend-service-card/  Backend health indicator
+│   ├── features/              Lazy-loaded pages: login, register, account,
+│   │                          patients, analytics, users
+│   ├── patient-detail/        Patient clinical history page (/patients/:id)
 │   ├── beds-create/            Standalone "new bed" page (/beds/new)
 │   └── legal/                  Lazy-loaded terms / FAQ pages
 ├── index.html                  <html class="dark"> — dark mode always forced on

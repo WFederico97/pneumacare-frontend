@@ -1,9 +1,10 @@
 import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { ShiftStatus } from '../shift-status/shift-status';
+import { UserMenu } from '../user-menu/user-menu';
 
 @Component({
   selector: 'app-dashboard-navbar',
-  imports: [ShiftStatus],
+  imports: [ShiftStatus, UserMenu],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
   host: { class: 'block' },

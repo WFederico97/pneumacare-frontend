@@ -14,6 +14,7 @@ import {
 import { TimelineEventCard } from './timeline-event-card/timeline-event-card';
 import { AirwayEventModal } from './airway-event-modal/airway-event-modal';
 import { SbtModal } from './sbt-modal/sbt-modal';
+import { AppShell } from '../dashboard/app-shell/app-shell';
 
 type ProcedureModal = 'airway' | 'sbt' | null;
 
@@ -29,10 +30,10 @@ type ProcedureModal = 'airway' | 'sbt' | null;
  */
 @Component({
   selector: 'app-patient-detail',
-  imports: [RouterLink, TimelineEventCard, AirwayEventModal, SbtModal],
+  imports: [RouterLink, TimelineEventCard, AirwayEventModal, SbtModal, AppShell],
   templateUrl: './patient-detail.html',
   styleUrl: './patient-detail.css',
-  host: { class: 'block min-h-screen bg-slate-950' },
+  host: { class: 'block' },
 })
 export class PatientDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
