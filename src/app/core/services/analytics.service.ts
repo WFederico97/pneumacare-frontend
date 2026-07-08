@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AnalyticsSummaryApiResponse } from '../models/analytics.model';
+import { AnalyticsSummaryApiResponse, ExecutiveDashboardApiResponse } from '../models/analytics.model';
 import { CachedRequest } from '../util/cached-request';
 
 /**
@@ -27,5 +27,14 @@ export class AnalyticsService {
   /** Forces the next {@link getSummary} to refetch (e.g. after data changes). */
   invalidate(): void {
     this.summaryCache.invalidate();
+  }
+
+  private readonly dashboardCache = new CachedRequest<ExecutiveDashboardApiResponse>(30_000, () =>
+    this.http.get<ExecutiveDashboardApiResponse>('/api/v1/analytics/dashboard'),
+  );
+
+  /** Reads the executive dashboard aggregation (GET /api/v1/analytics/dashboard). */
+  getExecutiveDashboard(): Observable<ExecutiveDashboardApiResponse> {
+    return this.dashboardCache.get();
   }
 }
