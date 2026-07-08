@@ -14,9 +14,13 @@ import {
 import { TimelineEventCard } from './timeline-event-card/timeline-event-card';
 import { AirwayEventModal } from './airway-event-modal/airway-event-modal';
 import { SbtModal } from './sbt-modal/sbt-modal';
+import { AssetAssignmentModal } from './asset-assignment-modal/asset-assignment-modal';
 import { AppShell } from '../dashboard/app-shell/app-shell';
+import { AuthService } from '../core/auth/auth.service';
+import { AssetService } from '../core/services/asset.service';
+import { ActiveAssignment } from '../core/models/asset.model';
 
-type ProcedureModal = 'airway' | 'sbt' | null;
+type ProcedureModal = 'airway' | 'sbt' | 'asset' | null;
 
 /**
  * Patient detail view (PNMC-96): route /patients/:id. Fetches the patient header
@@ -30,7 +34,7 @@ type ProcedureModal = 'airway' | 'sbt' | null;
  */
 @Component({
   selector: 'app-patient-detail',
-  imports: [RouterLink, TimelineEventCard, AirwayEventModal, SbtModal, AppShell],
+  imports: [RouterLink, TimelineEventCard, AirwayEventModal, SbtModal, AssetAssignmentModal, AppShell],
   templateUrl: './patient-detail.html',
   styleUrl: './patient-detail.css',
   host: { class: 'block' },
@@ -40,6 +44,8 @@ export class PatientDetail implements OnInit {
   private readonly patientService = inject(PatientService);
   private readonly timelineService = inject(TimelineService);
   private readonly shiftService = inject(ShiftService);
+  private readonly authService = inject(AuthService);
+  private readonly assetService = inject(AssetService);
 
   readonly isLoading = signal(true);
   readonly hasError = signal(false);
@@ -52,6 +58,12 @@ export class PatientDetail implements OnInit {
   readonly isShiftOpen = this.shiftService.isShiftOpen;
   readonly isMenuOpen = signal(false);
   readonly activeModal = signal<ProcedureModal>(null);
+
+  readonly activeAssignment = signal<ActiveAssignment | null>(null);
+
+  readonly canAssign = computed(() =>
+    this.authService.hasAnyRole('ROLE_THERAPIST', 'ROLE_CHIEF_OF_GUARD', 'ROLE_ADMIN'),
+  );
 
   readonly isEmpty = computed(
     () => !this.isLoading() && !this.hasError() && !this.notFound() && this.entries().length === 0,
@@ -76,6 +88,7 @@ export class PatientDetail implements OnInit {
     }
     this.patientId.set(id);
     this.load(id);
+    this.loadActiveAssignment(id);
   }
 
   private load(id: string): void {
@@ -134,6 +147,21 @@ export class PatientDetail implements OnInit {
 
   closeModal(): void {
     this.activeModal.set(null);
+  }
+
+  private loadActiveAssignment(id: string): void {
+    this.assetService.getActive(id).subscribe({
+      next: (response) => this.activeAssignment.set(response.data ?? null),
+      error: () => this.activeAssignment.set(null),
+    });
+  }
+
+  onAssetAssigned(): void {
+    const id = this.patientId();
+    if (id) {
+      this.loadActiveAssignment(id);
+    }
+    this.closeModal();
   }
 
   onAirwayCreated(payload: AirwayEventPayload): void {
