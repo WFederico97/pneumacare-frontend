@@ -35,6 +35,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'executive',
+    loadComponent: () => import('./features/executive/executive').then(m => m.Executive),
+    title: 'Panel ejecutivo | PneumaCare',
+    canActivate: [authGuard, roleGuard('ROLE_DIRECTOR', 'ROLE_ADMIN')],
+  },
+  {
     path: 'users',
     loadComponent: () => import('./features/users/users').then(m => m.Users),
     title: 'Usuarios | PneumaCare',

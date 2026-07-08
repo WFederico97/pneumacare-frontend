@@ -29,6 +29,7 @@ export class Sidebar {
     { label: 'Camas', short: 'CM', route: '/beds/new' },
     { label: 'Alertas', short: 'AL' },
     { label: 'Analítica', short: 'AN', route: '/analytics' },
+    { label: 'Dirección', short: 'DR', route: '/executive', roles: ['ROLE_DIRECTOR', 'ROLE_ADMIN'] },
     { label: 'Usuarios', short: 'US', route: '/users', roles: ['ROLE_ADMIN', 'ROLE_CHIEF_OF_GUARD'] },
     { label: 'Ajustes', short: 'AJ', route: '/account' },
   ];

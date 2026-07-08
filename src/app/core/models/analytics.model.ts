@@ -48,3 +48,11 @@ export interface AnalyticsSummary {
 }
 
 export type AnalyticsSummaryApiResponse = ApiResponse<AnalyticsSummary>;
+
+export interface ExecutiveDashboard {
+  occupancyRatePercent: number;
+  alertFrequencyLast7Days: number;
+  equipmentInMaintenanceCount: number;
+}
+
+export type ExecutiveDashboardApiResponse = ApiResponse<ExecutiveDashboard>;
