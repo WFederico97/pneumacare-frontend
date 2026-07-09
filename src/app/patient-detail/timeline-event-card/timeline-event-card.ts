@@ -6,6 +6,7 @@ import {
   SbtPayload,
   TimelineEntry,
 } from '../../core/models/timeline.model';
+import { ConsultantInsight } from '../consultant-insight/consultant-insight';
 
 /**
  * Renders a single timeline entry (PNMC-96) with a layout, icon and text label
@@ -14,7 +15,7 @@ import {
  */
 @Component({
   selector: 'app-timeline-event-card',
-  imports: [DatePipe, DecimalPipe],
+  imports: [DatePipe, DecimalPipe, ConsultantInsight],
   templateUrl: './timeline-event-card.html',
   styleUrl: './timeline-event-card.css',
   host: { class: 'block' },
