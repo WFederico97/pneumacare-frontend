@@ -35,15 +35,15 @@
       @if (patient(); as p) {
         <dl class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
           <div>
-            <dt class="text-xs uppercase tracking-wide text-slate-500">{{ p.identifier.typeName }}</dt>
+            <dt class="text-xs uppercase tracking-wide text-slate-400">{{ p.identifier.typeName }}</dt>
             <dd class="text-slate-200">{{ p.identifier.value }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-slate-500">Estado</dt>
+            <dt class="text-xs uppercase tracking-wide text-slate-400">Estado</dt>
             <dd class="text-slate-200">{{ p.clinicalStatus }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-slate-500">Ingreso</dt>
+            <dt class="text-xs uppercase tracking-wide text-slate-400">Ingreso</dt>
             <dd class="text-slate-200">{{ p.admissionDate }}</dd>
           </div>
         </dl>
