@@ -34,6 +34,27 @@ export class ConsultantInsight {
   readonly regionId = computed(() => `insight-region-${this.evaluationId()}`);
   readonly headingId = computed(() => `insight-heading-${this.evaluationId()}`);
 
+  /**
+   * Parses the composed insight string into its display parts. The backend emits
+   * a verdict headline, then one `• ` bullet per finding, then a `Fuentes:` line —
+   * so the card can render a scannable list instead of a wall of text.
+   */
+  readonly parsed = computed(() => {
+    const lines = (this.insight()?.insightText ?? '')
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    const bullets = lines
+      .filter((line) => line.startsWith('•'))
+      .map((line) => line.replace(/^•\s*/, ''));
+    const sourcesLine = lines.find((line) => line.startsWith('Fuentes:'));
+    const sources = sourcesLine ? sourcesLine.replace(/^Fuentes:\s*/, '') : '';
+    const headline =
+      lines.find((line) => !line.startsWith('•') && !line.startsWith('Fuentes:')) ?? '';
+    const ready = /^compatible/i.test(headline);
+    return { headline, bullets, sources, ready };
+  });
+
   toggle(): void {
     const next = !this.expanded();
     this.expanded.set(next);
