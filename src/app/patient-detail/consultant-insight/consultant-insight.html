@@ -84,7 +84,49 @@
           <span role="status" class="sr-only">Cargando recomendación clínica…</span>
         }
         @case ('loaded') {
-          <p class="text-sm leading-relaxed text-slate-100">{{ insight()?.insightText }}</p>
+          @let p = parsed();
+          @if (p.bullets.length > 0) {
+            <div class="space-y-2.5">
+              <!-- Weaning verdict headline — text carries the meaning (never colour/icon alone, WCAG 1.4.1). -->
+              <p
+                class="flex items-center gap-2 text-sm font-semibold"
+                [class]="p.ready ? 'text-emerald-200' : 'text-amber-200'"
+              >
+                @if (p.ready) {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0" aria-hidden="true">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 shrink-0" aria-hidden="true">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <path d="M12 9v4" />
+                    <path d="M12 17h.01" />
+                  </svg>
+                }
+                <span>{{ p.headline }}</span>
+              </p>
+
+              <!-- Prioritized findings, most urgent first. -->
+              <ul class="space-y-1.5">
+                @for (bullet of p.bullets; track bullet) {
+                  <li class="flex gap-2 text-sm leading-snug text-slate-100">
+                    <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-cyan-400" aria-hidden="true"></span>
+                    <span>{{ bullet }}</span>
+                  </li>
+                }
+              </ul>
+
+              @if (p.sources) {
+                <p class="text-xs leading-snug text-slate-400">
+                  <span class="font-medium">Fuentes:</span> {{ p.sources }}
+                </p>
+              }
+            </div>
+          } @else {
+            <p class="text-sm leading-relaxed text-slate-100">{{ insight()?.insightText }}</p>
+          }
         }
         @case ('error') {
           <div role="alert" class="text-sm text-red-200">
