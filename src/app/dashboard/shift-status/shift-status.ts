@@ -20,10 +20,6 @@ import { UserContext } from '../../core/services/user-context.service';
   host: { class: 'block' },
 })
 export class ShiftStatus implements OnInit {
-  /** Dev seam: opening a shift needs an ICU. Until an ICU-picker US exists, use the
-   *  dev-seeded ICU id. The active shift carries its own icuId once one is open. */
-  private static readonly DEV_ICU_ID = 'cccccccc-0000-0000-0000-000000000001';
-
   private readonly shiftService = inject(ShiftService);
   private readonly userContext = inject(UserContext);
 
@@ -71,7 +67,7 @@ export class ShiftStatus implements OnInit {
     this.isActionInFlight.set(true);
     this.actionError.set(null);
 
-    this.shiftService.openShift(ShiftStatus.DEV_ICU_ID).subscribe({
+    this.shiftService.openShift().subscribe({
       next: () => {
         this.isActionInFlight.set(false);
         this.shiftService.refresh(true);

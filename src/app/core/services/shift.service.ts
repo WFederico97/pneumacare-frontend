@@ -71,10 +71,10 @@ export class ShiftService {
       });
   }
 
-  /** POST /api/v1/shifts — opens a shift for the given ICU. */
-  openShift(icuId: string): Observable<Shift> {
+  /** POST /api/v1/shifts — opens a shift for the caller's ICU (derived server-side from the session). */
+  openShift(): Observable<Shift> {
     return this.http
-      .post<ShiftApiResponse>('/api/v1/shifts', { icuId })
+      .post<ShiftApiResponse>('/api/v1/shifts', {})
       .pipe(map((response) => response.data));
   }
 
