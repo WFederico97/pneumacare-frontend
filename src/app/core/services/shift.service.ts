@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import {
   ActiveShiftApiResponse,
+  Handover,
+  HandoverApiResponse,
   Shift,
   ShiftApiResponse,
 } from '../models/shift.model';
@@ -82,6 +84,13 @@ export class ShiftService {
   closeShift(shiftId: string): Observable<Shift> {
     return this.http
       .patch<ShiftApiResponse>(`/api/v1/shifts/${shiftId}/close`, {})
+      .pipe(map((response) => response.data));
+  }
+
+  /** POST /api/v1/shifts/{id}/handovers — records a handover note (must be an OPEN shift). */
+  createHandover(shiftId: string, notesContent: string): Observable<Handover> {
+    return this.http
+      .post<HandoverApiResponse>(`/api/v1/shifts/${shiftId}/handovers`, { notesContent })
       .pipe(map((response) => response.data));
   }
 }

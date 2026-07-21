@@ -1,0 +1,76 @@
+<div class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm" (click)="handleCancel()" aria-hidden="true"></div>
+
+<section
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="handover-modal-title"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4"
+>
+  <div class="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl" (click)="$event.stopPropagation()">
+    <header class="border-b border-slate-700/80 px-5 py-4">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="handover-modal-title" class="text-lg font-semibold text-slate-100">Cerrar turno</h2>
+          <p class="mt-1 text-sm text-slate-400">Registrá las novedades para el turno entrante (opcional).</p>
+        </div>
+        <button
+          type="button"
+          (click)="handleCancel()"
+          class="min-h-[44px] rounded-md border border-slate-600 px-3 py-2 text-xs text-slate-300 transition-colors hover:border-cyan-400 hover:text-cyan-200"
+        >
+          ESC
+        </button>
+      </div>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-4 px-5 py-4">
+      <div>
+        <label for="handover-notes" class="mb-1 block text-xs font-medium text-slate-300">
+          Novedades del turno
+        </label>
+        <textarea
+          id="handover-notes"
+          rows="5"
+          formControlName="notesContent"
+          [attr.maxlength]="maxNotes"
+          placeholder="Ej: Cama DEMO-01 SDRA grave, diferir destete. Cama DEMO-03 lista para SBT."
+          [attr.aria-invalid]="notesError() ? 'true' : null"
+          [attr.aria-describedby]="notesError() ? 'handover-notes-error' : 'handover-notes-counter'"
+          class="w-full resize-y rounded-lg border border-slate-600 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+        ></textarea>
+        <div class="mt-1 flex items-center justify-between">
+          <p id="handover-notes-counter" class="text-xs text-slate-500">{{ remaining() }} caracteres restantes</p>
+          @if (notesError(); as message) {
+            <p id="handover-notes-error" role="alert" class="rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+              {{ message }}
+            </p>
+          }
+        </div>
+      </div>
+
+      @if (submitError()) {
+        <p role="alert" class="rounded-md border border-red-500/70 bg-red-950/60 px-3 py-2 text-sm text-red-100">
+          {{ submitError() }}
+        </p>
+      }
+
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button
+          type="button"
+          (click)="handleCancel()"
+          [disabled]="isSubmitting()"
+          class="min-h-[44px] rounded-lg border border-slate-600 px-3 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="!canSubmit()"
+          class="min-h-[44px] rounded-lg border border-red-500/70 bg-red-700 px-3 py-2 text-sm font-semibold text-red-50 transition-colors enabled:hover:bg-red-600 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800 disabled:text-slate-500"
+        >
+          @if (isSubmitting()) { Cerrando... } @else { Cerrar turno }
+        </button>
+      </div>
+    </form>
+  </div>
+</section>
