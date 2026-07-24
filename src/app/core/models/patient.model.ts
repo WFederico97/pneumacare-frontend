@@ -31,6 +31,14 @@ export interface PatientApiItem {
   clinicalStatus: string;
 }
 
+/** Spanish label for the backend ClinicalStatus enum; unknown values pass through. */
+export function clinicalStatusLabel(status: string): string {
+  if (status === 'ADMITTED') return 'Internado';
+  if (status === 'DISCHARGED') return 'Alta';
+  if (status === 'TRANSFERRED') return 'Trasladado';
+  return status;
+}
+
 export type CreatePatientApiResponse = ApiResponse<PatientApiItem>;
 export type GetPatientApiResponse = ApiResponse<PatientApiItem>;
 export type GetPatientsApiResponse = ApiResponse<PatientApiItem[]>;

@@ -1,0 +1,27 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* Subtle pulse on the header dot when there are active alerts. */
+.alert-pulse {
+  animation: alert-pulse 1.3s ease-in-out infinite;
+}
+
+@keyframes alert-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-pulse {
+    animation: none;
+  }
+}

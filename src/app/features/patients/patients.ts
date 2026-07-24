@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AppShell } from '../../dashboard/app-shell/app-shell';
 import { PatientService } from '../../core/services/patient.service';
-import { PatientApiItem } from '../../core/models/patient.model';
+import { PatientApiItem, clinicalStatusLabel } from '../../core/models/patient.model';
 
 /**
  * Patients list (PNMC-56 gap): all admitted patients, searchable, each linking
@@ -57,5 +57,9 @@ export class Patients implements OnInit {
 
   onSearch(value: string): void {
     this.query.set(value);
+  }
+
+  statusLabel(status: string): string {
+    return clinicalStatusLabel(status);
   }
 }

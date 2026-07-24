@@ -5,6 +5,48 @@
       <p class="mt-1 text-sm text-slate-400">Indicadores de la UCI según tu rol.</p>
     </header>
 
+    <!-- Barra de filtros: rango de fechas (servidor) + foco de métrica (cliente) -->
+    <div class="mb-6 flex flex-col gap-3 rounded-2xl border border-slate-700/70 bg-slate-900/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div role="group" aria-label="Rango de fechas">
+        <p class="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Rango</p>
+        <div class="flex flex-wrap gap-1.5">
+          @for (opt of windowOptions; track opt.days) {
+            <button
+              type="button"
+              (click)="setWindow(opt.days)"
+              [attr.aria-pressed]="windowDays() === opt.days"
+              class="min-h-[32px] rounded-lg border px-3 py-1 text-xs font-semibold transition-colors"
+              [class]="windowDays() === opt.days
+                ? 'border-cyan-400 bg-cyan-500/15 text-cyan-200'
+                : 'border-slate-600 bg-slate-900 text-slate-300 hover:border-cyan-500/60 hover:text-cyan-200'"
+            >
+              {{ opt.label }}
+            </button>
+          }
+        </div>
+      </div>
+      @if (focusOptions().length > 1) {
+        <div role="group" aria-label="Foco de métrica">
+          <p class="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Foco</p>
+          <div class="flex flex-wrap gap-1.5">
+            @for (f of focusOptions(); track f.key) {
+              <button
+                type="button"
+                (click)="setFocus(f.key)"
+                [attr.aria-pressed]="metricFocus() === f.key"
+                class="min-h-[32px] rounded-lg border px-3 py-1 text-xs font-semibold transition-colors"
+                [class]="metricFocus() === f.key
+                  ? 'border-cyan-400 bg-cyan-500/15 text-cyan-200'
+                  : 'border-slate-600 bg-slate-900 text-slate-300 hover:border-cyan-500/60 hover:text-cyan-200'"
+              >
+                {{ f.label }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
     @if (isLoading()) {
       <p class="rounded-2xl border border-slate-700/70 bg-slate-900/80 px-6 py-10 text-center text-sm text-slate-400">
         Cargando analítica…
@@ -18,14 +60,38 @@
       </div>
     } @else if (summary(); as s) {
       <!-- Clínico (siempre) -->
-      @if (s.clinical; as c) {
+      @if (showsSection('clinical') && s.clinical; as c) {
         <section aria-labelledby="clinico-title" class="mb-6">
           <h2 id="clinico-title" class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Clínico</h2>
           <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <app-kpi-card label="Ocupación" [value]="pct(c.occupancy.occupancyRate)" />
             <app-kpi-card label="Ocupadas" [value]="c.occupancy.occupied + '/' + c.occupancy.total" />
-            <app-kpi-card label="Evaluaciones (14d)" [value]="evaluationCount(s)" />
-            <app-kpi-card label="SBT (14d)" [value]="sbtTotal(s)" />
+            <app-kpi-card [label]="'Evaluaciones (' + windowLabel() + ')'" [value]="evaluationCount(s)" />
+            <app-kpi-card [label]="'SBT (' + windowLabel() + ')'" [value]="sbtTotal(s)" />
+          </div>
+          <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <app-kpi-card
+              label="ΔP elevada (>15)"
+              [value]="c.lungProtection.highDrivingPressurePatients"
+              sub="pacientes — última evaluación"
+              [tone]="c.lungProtection.highDrivingPressurePatients > 0 ? 'alert' : 'default'"
+            />
+            <app-kpi-card
+              label="Intubados ahora"
+              [value]="c.ventilation.currentlyIntubated"
+              sub="pacientes en VMI"
+            />
+            <app-kpi-card
+              [label]="'Días de intubación (' + windowLabel() + ')'"
+              [value]="c.ventilation.intubationDaysInWindow"
+              sub="paciente-días"
+            />
+            <app-kpi-card
+              [label]="'Éxito extubación (' + windowLabel() + ')'"
+              [value]="c.extubation.extubations > 0 ? (c.extubation.successRatePercent + '%') : '—'"
+              [sub]="c.extubation.extubations + ' extub. · ' + c.extubation.reintubations48h + ' reintub. <48h'"
+              [tone]="c.extubation.reintubations48h > 0 ? 'alert' : 'default'"
+            />
           </div>
           <div class="mt-4 grid gap-4 lg:grid-cols-2">
             <div class="rounded-2xl border border-slate-700/70 bg-slate-900/80 p-5 shadow-xl">
@@ -33,29 +99,30 @@
             </div>
             <div class="space-y-4 rounded-2xl border border-slate-700/70 bg-slate-900/80 p-5 shadow-xl">
               <app-breakdown-bar title="Destete — bandas RSBI" [segments]="rsbiSegments(s)" />
-              <app-breakdown-bar title="SBT — resultado (14d)" [segments]="sbtSegments(s)" />
+              <app-breakdown-bar [title]="'SBT — resultado (' + windowLabel() + ')'" [segments]="sbtSegments(s)" />
+              <app-breakdown-bar title="Clasificación de destete (WIND · por intentos SBT)" [segments]="windSegments(s)" />
             </div>
           </div>
           <div class="mt-4 rounded-2xl border border-slate-700/70 bg-slate-900/80 p-5 shadow-xl">
-            <app-trend-bars title="Evaluaciones por día (14d)" [points]="c.evaluationTrend" />
+            <app-trend-bars [title]="'Evaluaciones por día (' + windowLabel() + ')'" [points]="c.evaluationTrend" />
           </div>
         </section>
       }
 
       <!-- Guardia (jefe+) -->
-      @if (s.ward; as w) {
+      @if (showsSection('ward') && s.ward; as w) {
         <section aria-labelledby="guardia-title" class="mb-6">
           <h2 id="guardia-title" class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Guardia</h2>
           <div class="grid gap-4 sm:grid-cols-3">
             <app-kpi-card label="Turno activo" [value]="w.activeShiftOpen ? 'Sí' : 'No'" />
-            <app-kpi-card label="Turnos (14d)" [value]="w.shiftsInWindow" />
-            <app-kpi-card label="Admisiones (14d)" [value]="w.admissionsInWindow" />
+            <app-kpi-card [label]="'Turnos (' + windowLabel() + ')'" [value]="w.shiftsInWindow" />
+            <app-kpi-card [label]="'Admisiones (' + windowLabel() + ')'" [value]="w.admissionsInWindow" />
           </div>
         </section>
       }
 
       <!-- Usuarios / IAM (admin) -->
-      @if (s.iam; as iam) {
+      @if (showsSection('iam') && s.iam; as iam) {
         <section aria-labelledby="iam-title">
           <h2 id="iam-title" class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Usuarios</h2>
           <div class="grid gap-4 sm:grid-cols-3">

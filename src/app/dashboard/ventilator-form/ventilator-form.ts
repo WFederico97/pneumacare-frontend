@@ -1,18 +1,33 @@
-import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, input, output, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { AssetService } from '../../core/services/asset.service';
 import { EvaluationService } from '../../core/services/evaluation.service';
 import { ShiftService } from '../../core/services/shift.service';
-import { CreateEvaluationRequest, CstatInterpretation, EvaluationResult, PafiClassification, RsbiInterpretation, VentilatorBrand } from '../../core/models/evaluation.model';
+import { VentilatorService } from '../../core/services/ventilator.service';
+import { ActiveAssignment } from '../../core/models/asset.model';
+import { CreateEvaluationRequest, CstatInterpretation, DrivingPressureBand, EvaluationResult, PafiClassification, RsbiInterpretation, VentilatorBrand } from '../../core/models/evaluation.model';
+import { VentilatorParameterField } from '../../core/models/ventilator-parameter.model';
 
 type NumericControl = 'f' | 'vt' | 'fio2' | 'pao2' | 'peep' | 'pplat' | 'triggerFlow' | 'inspTime';
 
-const PHYSICAL_VENTILATOR_IDS: Record<VentilatorBrand, string> = {
-  TECME: '00000000-0000-0000-0001-000000000001',
-  NEUMOVENT: '00000000-0000-0000-0001-000000000002',
+/** The six universal parameters present for every ventilator brand. */
+const CORE_FIELDS: readonly NumericControl[] = ['f', 'vt', 'fio2', 'pao2', 'peep', 'pplat'];
+
+/** Every brand-specific control the static form can host, cleared when not in the active schema. */
+const ALL_EXTENDED_CONTROLS: readonly NumericControl[] = ['triggerFlow', 'inspTime'];
+
+/**
+ * Fallback extended schema used before the backend schema loads, so the form is
+ * usable immediately. Mirrors the server defaults; the fetched schema overrides it.
+ */
+const FALLBACK_SCHEMA: Record<VentilatorBrand, VentilatorParameterField[]> = {
+  TECME: [{ key: 'triggerFlow', label: 'Trigger por flujo', unit: 'L/min', valueType: 'number', min: 1, max: 30, step: 1, required: true }],
+  NEUMOVENT: [{ key: 'inspTime', label: 'Tiempo inspiratorio', unit: 's', valueType: 'number', min: 0.1, max: 5, step: 0.1, required: true }],
 };
+
 interface PresetProfile {
   readonly label: string;
   readonly f: number;
@@ -53,6 +68,14 @@ export class VentilatorForm implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly evaluationService = inject(EvaluationService);
   private readonly shiftService = inject(ShiftService);
+  private readonly ventilatorService = inject(VentilatorService);
+  private readonly assetService = inject(AssetService);
+
+  /** Config-driven extended parameter schema per brand, fetched from the backend. */
+  private readonly schemaByBrand = new Map<VentilatorBrand, VentilatorParameterField[]>();
+
+  /** Extended fields for the currently selected brand — drives the dynamic form section. */
+  readonly extendedFields = signal<VentilatorParameterField[]>(FALLBACK_SCHEMA.TECME);
 
   /** Evaluations require an OPEN shift (PNMC-93 AC3); the form locks otherwise. */
   readonly isShiftOpen = this.shiftService.isShiftOpen;
@@ -61,7 +84,18 @@ export class VentilatorForm implements OnInit {
   readonly selectedBedNumber = input<string | null>(null);
   readonly patientId = input<string | null>(null);
 
+  /** Emitted after an evaluation is persisted, so the host can react to its alert state. */
+  readonly evaluationSaved = output<EvaluationResult>();
+
   private lastBedId: string | null = null;
+
+  /**
+   * The patient's active ventilator assignment. {@code undefined} = lookup in
+   * flight, {@code null} = confirmed unassigned. Evaluations reference the
+   * physical machine, so submitting is blocked until a ventilator is assigned
+   * from the patient's clinical record.
+   */
+  readonly activeAssignment = signal<ActiveAssignment | null | undefined>(undefined);
 
   readonly brandOptions: readonly VentilatorBrand[] = ['TECME', 'NEUMOVENT'];
   readonly selectedBrand = signal<VentilatorBrand>('TECME');
@@ -70,7 +104,37 @@ export class VentilatorForm implements OnInit {
   readonly submitError = signal<string | null>(null);
   readonly activePreset = signal<string | null>(null);
 
+  /**
+   * Clinical fields the therapist has manually typed into since the last preset
+   * fill or reset. Anything NOT in this set that still carries a value is a
+   * preset/default the user is about to submit unchanged — surfaced as a flag.
+   */
+  readonly manuallyEdited = signal<ReadonlySet<NumericControl>>(new Set());
+
   readonly presets = PRESETS;
+
+  /** The clinical fields a preset fills: the six core fields plus the active schema's extended fields. */
+  private readonly presetFieldsForBrand = computed<readonly NumericControl[]>(() => {
+    const extended = this.extendedFields().map((field) => field.key as NumericControl);
+    return [...CORE_FIELDS, ...extended];
+  });
+
+  /**
+   * Fields still holding a preset/default value the user has not touched.
+   * Empty until a preset is applied; recomputes as the user edits.
+   */
+  readonly presetUnmodifiedFields = computed<readonly NumericControl[]>(() => {
+    if (this.activePreset() === null) return [];
+    this._formValues(); // re-evaluate as values change
+    const edited = this.manuallyEdited();
+    return this.presetFieldsForBrand().filter((name) => {
+      if (edited.has(name)) return false;
+      const v = this.form.controls[name].value;
+      return v !== null && v !== undefined;
+    });
+  });
+
+  readonly presetUnmodifiedCount = computed(() => this.presetUnmodifiedFields().length);
 
   readonly form = this.formBuilder.group({
     brand: this.formBuilder.control<VentilatorBrand>('TECME', {
@@ -132,8 +196,20 @@ export class VentilatorForm implements OnInit {
     return vt / (pplat - peep);
   });
 
+  /* ΔP = Pplat − PEEP (cmH₂O) — driving pressure, live as user types */
+  readonly liveDrivingPressure = computed(() => {
+    const v = this._formValues();
+    const pplat = v.pplat;
+    const peep = v.peep;
+    if (pplat === null || pplat === undefined || peep === null || peep === undefined || pplat <= peep) {
+      return null;
+    }
+    return pplat - peep;
+  });
+
   readonly hasLiveMetrics = computed(() =>
-    this.liveRsbi() !== null || this.livePafi() !== null || this.liveCstat() !== null
+    this.liveRsbi() !== null || this.livePafi() !== null || this.liveCstat() !== null ||
+    this.liveDrivingPressure() !== null
   );
 
   constructor() {
@@ -159,14 +235,42 @@ export class VentilatorForm implements OnInit {
         this.lastBedId = currentBedId;
       }
     });
+
+    effect(() => {
+      const currentPatientId = this.patientId();
+      this.activeAssignment.set(undefined);
+      if (!currentPatientId) {
+        this.activeAssignment.set(null);
+        return;
+      }
+      this.assetService.getActive(currentPatientId).subscribe({
+        next: (response) => this.activeAssignment.set(response.data),
+        error: () => this.activeAssignment.set(null),
+      });
+    });
   }
 
   ngOnInit(): void {
-    this.applyBrandRules(this.form.controls.brand.value);
+    /* Seed from the fallback so the form is usable before the fetch resolves. */
+    this.schemaByBrand.set('TECME', FALLBACK_SCHEMA.TECME);
+    this.schemaByBrand.set('NEUMOVENT', FALLBACK_SCHEMA.NEUMOVENT);
+    this.applyExtendedSchema(this.form.controls.brand.value);
+
+    this.ventilatorService.getParameterSchema().subscribe({
+      next: (schemas) => {
+        for (const schema of schemas) {
+          this.schemaByBrand.set(schema.brand, schema.extendedFields);
+        }
+        this.applyExtendedSchema(this.selectedBrand());
+      },
+      error: () => {
+        /* Keep the fallback schema; the form remains fully usable. */
+      },
+    });
 
     this.form.controls.brand.valueChanges.subscribe(brand => {
       this.selectedBrand.set(brand);
-      this.applyBrandRules(brand);
+      this.applyExtendedSchema(brand);
       this.resetClinicalFields();
     });
   }
@@ -210,6 +314,15 @@ export class VentilatorForm implements OnInit {
     control.setValue(Number.isNaN(numericValue) ? null : numericValue, { emitEvent: false });
     control.markAsDirty();
     control.updateValueAndValidity();
+
+    if (!this.manuallyEdited().has(controlName)) {
+      this.manuallyEdited.set(new Set(this.manuallyEdited()).add(controlName));
+    }
+  }
+
+  /** True when this field still shows an unmodified preset/default value. */
+  isPresetUnmodified(controlName: NumericControl): boolean {
+    return this.presetUnmodifiedFields().includes(controlName);
   }
 
   replaceCommaWithDot(event: KeyboardEvent): void {
@@ -230,20 +343,30 @@ export class VentilatorForm implements OnInit {
     target.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  /* Apply a preset profile — fills all six clinical fields at once */
+  /* Apply a preset profile — fills the six core fields plus the active schema's extended fields */
   applyPreset(preset: PresetProfile): void {
     if (!this.hasSelectedBed()) return;
 
-    const brand = this.selectedBrand();
-    const extended = brand === 'TECME'
-      ? { triggerFlow: preset.triggerFlow, inspTime: null }
-      : { triggerFlow: null, inspTime: preset.inspTime };
+    this.form.patchValue({
+      f: preset.f, vt: preset.vt, fio2: preset.fio2,
+      pao2: preset.pao2, peep: preset.peep, pplat: preset.pplat,
+    });
 
-    this.form.patchValue({ ...preset, ...extended });
+    /* Clear every possible extended control, then fill only those in the active schema. */
+    for (const control of ALL_EXTENDED_CONTROLS) {
+      this.form.controls[control].setValue(null);
+    }
+    for (const field of this.extendedFields()) {
+      const key = field.key as 'triggerFlow' | 'inspTime';
+      this.form.controls[key].setValue(preset[key]);
+    }
+
     this.form.markAsDirty();
     this.evaluationResult.set(null);
     this.submitError.set(null);
     this.activePreset.set(preset.label);
+    /* All fields now carry preset values — none manually modified yet. */
+    this.manuallyEdited.set(new Set());
   }
 
   liveRsbiClass(): string {
@@ -271,6 +394,13 @@ export class VentilatorForm implements OnInit {
     return 'text-yellow-300';
   }
 
+  liveDrivingPressureClass(): string {
+    const v = this.liveDrivingPressure();
+    if (v === null) return 'text-slate-500';
+    // ΔP > 15 cmH₂O is the mortality-associated threshold (Amato 2015).
+    return v > 15 ? 'text-red-300' : 'text-emerald-300';
+  }
+
   submit(): void {
     this.form.markAllAsTouched();
     if (this.form.invalid || !this.hasSelectedBed() || this.isLoading()) {
@@ -289,17 +419,31 @@ export class VentilatorForm implements OnInit {
       return;
     }
 
+    const assignment = this.activeAssignment();
+    if (assignment === undefined) {
+      this.setSubmitError('Verificando el ventilador asignado. Intentá de nuevo en unos segundos.');
+      return;
+    }
+    if (assignment === null) {
+      this.setSubmitError(
+        'El paciente no tiene un ventilador asignado. Asignale un equipo desde su historia clínica.',
+      );
+      return;
+    }
+
     const v = this.form.value;
     const brand = this.selectedBrand();
-    const extendedParameters: Record<string, unknown> =
-      brand === 'TECME'
-        ? { triggerFlow: v.triggerFlow }
-        : { inspTime: v.inspTime };
+    /* Build the extended payload from the active schema — no brand hard-coding. */
+    const extendedParameters: Record<string, unknown> = {};
+    for (const field of this.extendedFields()) {
+      const control = this.form.get(field.key);
+      extendedParameters[field.key] = control ? control.value : null;
+    }
 
     const payload: CreateEvaluationRequest = {
       patientId: currentPatientId,
       shiftId: activeShift.id,
-      physicalVentilatorId: PHYSICAL_VENTILATOR_IDS[brand],
+      physicalVentilatorId: assignment.ventilatorId,
       brand,
       f: v.f!,
       vt: v.vt!,
@@ -317,6 +461,7 @@ export class VentilatorForm implements OnInit {
       next: (response) => {
         this.isLoading.set(false);
         this.evaluationResult.set(response.data);
+        this.evaluationSaved.emit(response.data);
       },
       error: (err: HttpErrorResponse) => {
         this.isLoading.set(false);
@@ -371,6 +516,16 @@ export class VentilatorForm implements OnInit {
     return 'Baja';
   }
 
+  drivingPressureColorClass(band: DrivingPressureBand): string {
+    return band === 'HIGH'
+      ? 'text-red-300 border-red-500/40 bg-red-950/30'
+      : 'text-emerald-300 border-emerald-500/40 bg-emerald-950/30';
+  }
+
+  drivingPressureLabel(band: DrivingPressureBand): string {
+    return band === 'HIGH' ? 'Elevada' : 'Protectora';
+  }
+
   private setSubmitError(message: string): void {
     this.submitError.set(message);
     setTimeout(() => this.submitError.set(null), 5000);
@@ -390,23 +545,35 @@ export class VentilatorForm implements OnInit {
     return 'Error al guardar la evaluación. Intente nuevamente.';
   }
 
-  private applyBrandRules(brand: VentilatorBrand): void {
-    const triggerFlowControl = this.form.controls.triggerFlow;
-    const inspTimeControl = this.form.controls.inspTime;
+  /**
+   * Applies the brand's config-driven extended-parameter schema: validators and
+   * visibility of the extended controls come entirely from the fetched (or
+   * fallback) schema rather than being hard-coded per brand.
+   */
+  private applyExtendedSchema(brand: VentilatorBrand): void {
+    const fields = this.schemaByBrand.get(brand) ?? [];
+    this.extendedFields.set(fields);
+    const activeKeys = new Set(fields.map((field) => field.key));
 
-    triggerFlowControl.clearValidators();
-    inspTimeControl.clearValidators();
-
-    if (brand === 'TECME') {
-      triggerFlowControl.setValidators([Validators.required, Validators.min(1), Validators.max(30)]);
-      inspTimeControl.setValue(null);
-    } else {
-      inspTimeControl.setValidators([Validators.required, Validators.min(0.1), Validators.max(5)]);
-      triggerFlowControl.setValue(null);
+    /* Any extended control not in the active schema is cleared and un-validated. */
+    for (const control of ALL_EXTENDED_CONTROLS) {
+      if (!activeKeys.has(control)) {
+        const ctrl = this.form.controls[control];
+        ctrl.clearValidators();
+        ctrl.setValue(null);
+        ctrl.updateValueAndValidity();
+      }
     }
 
-    triggerFlowControl.updateValueAndValidity();
-    inspTimeControl.updateValueAndValidity();
+    /* Each schema field drives its control's validators. */
+    for (const field of fields) {
+      const ctrl = this.form.get(field.key);
+      if (!ctrl) continue;
+      const validators = [Validators.min(field.min), Validators.max(field.max)];
+      if (field.required) validators.unshift(Validators.required);
+      ctrl.setValidators(validators);
+      ctrl.updateValueAndValidity();
+    }
   }
 
   private resetClinicalFields(): void {
@@ -422,6 +589,7 @@ export class VentilatorForm implements OnInit {
     });
 
     this.activePreset.set(null);
+    this.manuallyEdited.set(new Set());
   }
 
   private minMessage(controlName: NumericControl): string {

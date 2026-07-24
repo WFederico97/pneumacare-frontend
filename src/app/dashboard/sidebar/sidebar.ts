@@ -27,10 +27,12 @@ export class Sidebar {
     { label: 'Tablero', short: 'TB', route: '/', exact: true },
     { label: 'Pacientes', short: 'PC', route: '/patients' },
     { label: 'Camas', short: 'CM', route: '/beds/new' },
-    { label: 'Alertas', short: 'AL' },
+    { label: 'Alertas', short: 'AL', route: '/alerts' },
     { label: 'Analítica', short: 'AN', route: '/analytics' },
-    { label: 'Dirección', short: 'DR', route: '/executive', roles: ['ROLE_DIRECTOR', 'ROLE_ADMIN'] },
+    { label: 'Dirección', short: 'DR', route: '/executive', roles: ['ROLE_DIRECTOR', 'ROLE_ADMIN', 'ROLE_CHIEF_OF_GUARD'] },
+    { label: 'Ventiladores', short: 'VT', route: '/ventilators', roles: ['ROLE_ADMIN', 'ROLE_CHIEF_OF_GUARD'] },
     { label: 'Usuarios', short: 'US', route: '/users', roles: ['ROLE_ADMIN', 'ROLE_CHIEF_OF_GUARD'] },
+    { label: 'Configuración', short: 'CF', route: '/settings', roles: ['ROLE_ADMIN'] },
     { label: 'Ajustes', short: 'AJ', route: '/account' },
   ];
 

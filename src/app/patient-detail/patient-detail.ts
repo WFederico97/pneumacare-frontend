@@ -1,10 +1,11 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PatientService } from '../core/services/patient.service';
 import { TimelineService } from '../core/services/timeline.service';
 import { ShiftService } from '../core/services/shift.service';
-import { PatientApiItem } from '../core/models/patient.model';
+import { PatientApiItem, clinicalStatusLabel } from '../core/models/patient.model';
 import {
   AirwayEventPayload,
   RespiratoryStatus,
@@ -34,12 +35,15 @@ type ProcedureModal = 'airway' | 'sbt' | 'asset' | null;
  */
 @Component({
   selector: 'app-patient-detail',
-  imports: [RouterLink, TimelineEventCard, AirwayEventModal, SbtModal, AssetAssignmentModal, AppShell],
+  imports: [RouterLink, DatePipe, TimelineEventCard, AirwayEventModal, SbtModal, AssetAssignmentModal, AppShell],
   templateUrl: './patient-detail.html',
   styleUrl: './patient-detail.css',
   host: { class: 'block' },
 })
 export class PatientDetail implements OnInit {
+  /** Exposed for the template: shared ClinicalStatus → Spanish label mapping. */
+  readonly clinicalStatusLabel = clinicalStatusLabel;
+
   private readonly route = inject(ActivatedRoute);
   private readonly patientService = inject(PatientService);
   private readonly timelineService = inject(TimelineService);

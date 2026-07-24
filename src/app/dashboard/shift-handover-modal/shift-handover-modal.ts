@@ -56,8 +56,11 @@ export class ShiftHandoverModal {
       this.remaining.set(MAX_NOTES - (value?.length ?? 0)),
     );
     afterNextRender(() => {
-      const first = this.el.nativeElement.querySelector(FOCUSABLE_SELECTOR) as HTMLElement | null;
-      first?.focus();
+      // Focus the notes field directly — the first focusable element is the
+      // ESC close button, which is a poor initial target for typing.
+      const host = this.el.nativeElement as HTMLElement;
+      const target = (host.querySelector('textarea') ?? host.querySelector(FOCUSABLE_SELECTOR)) as HTMLElement | null;
+      target?.focus();
     });
   }
 

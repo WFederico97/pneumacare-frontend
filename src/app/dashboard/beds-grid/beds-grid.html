@@ -11,7 +11,11 @@
 } @else {
   <section class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" aria-label="Grilla de camas UCI">
     @for (bed of beds(); track bed.bedId) {
-      <article class="rounded-2xl ring-1 shadow-lg transition-colors" [class]="cardClasses(bed.status)">
+      <article
+        class="rounded-2xl ring-1 shadow-lg transition-colors"
+        [class]="cardClasses(bed.status)"
+        [class.bed-critical]="bed.status === 'OCCUPIED' && bed.criticalAlert"
+      >
         @if (bed.status === 'AVAILABLE') {
           <button
             type="button"
@@ -37,7 +41,7 @@
             type="button"
             class="w-full rounded-2xl p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/90"
             (click)="onBedClick(bed)"
-            [attr.aria-label]="'Ver acciones de cama ' + bed.bedNumber"
+            [attr.aria-label]="(bed.criticalAlert ? 'ALERTA CRÍTICA en cama ' : 'Ver acciones de cama ') + bed.bedNumber"
           >
             <div class="flex items-center justify-between gap-3">
               <h3 class="text-xl font-bold tracking-wide">{{ bed.bedNumber }}</h3>
@@ -48,23 +52,21 @@
                 <span aria-hidden="true">{{ statusShape(bed.status) }} </span>{{ statusLabel(bed.status) }}
               </span>
             </div>
-            <p class="mt-3 text-xs font-medium text-white/85">
-              Haz clic para ver acciones rápidas
-            </p>
-          </button>
-        } @else {
-          <div class="w-full rounded-2xl p-5" aria-readonly="true">
-            <div class="flex items-center justify-between gap-3">
-              <h3 class="text-xl font-bold tracking-wide">{{ bed.bedNumber }}</h3>
-              <span
-                class="rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide"
-                [class]="badgeClasses(bed.status)"
+            @if (bed.criticalAlert) {
+              <div
+                class="mt-3 flex items-center gap-2 rounded-lg border border-red-300/50 bg-red-950/60 px-2.5 py-1.5"
+                role="status"
               >
-                <span aria-hidden="true">{{ statusShape(bed.status) }} </span>{{ statusLabel(bed.status) }}
-              </span>
-            </div>
-            <p class="mt-3 text-xs font-medium text-white/85">En mantenimiento</p>
-          </div>
+                <span aria-hidden="true" class="bed-critical-dot inline-block h-2.5 w-2.5 flex-none rounded-full bg-red-300"></span>
+                <span class="text-xs font-bold uppercase tracking-wide text-red-100">⚠ Alerta clínica crítica</span>
+              </div>
+              <p class="mt-2 text-xs font-medium text-white/85">Haz clic para revisar al paciente</p>
+            } @else {
+              <p class="mt-3 text-xs font-medium text-white/85">
+                Haz clic para ver acciones rápidas
+              </p>
+            }
+          </button>
         }
       </article>
     }

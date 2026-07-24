@@ -40,11 +40,11 @@
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-slate-400">Estado</dt>
-            <dd class="text-slate-200">{{ p.clinicalStatus }}</dd>
+            <dd class="text-slate-200">{{ clinicalStatusLabel(p.clinicalStatus) }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-slate-400">Ingreso</dt>
-            <dd class="text-slate-200">{{ p.admissionDate }}</dd>
+            <dd class="text-slate-200">{{ p.admissionDate | date:'short' }}</dd>
           </div>
         </dl>
       }

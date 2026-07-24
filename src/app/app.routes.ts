@@ -35,16 +35,34 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'alerts',
+    loadComponent: () => import('./features/alerts/alerts').then(m => m.Alerts),
+    title: 'Alertas | PneumaCare',
+    canActivate: [authGuard],
+  },
+  {
     path: 'executive',
     loadComponent: () => import('./features/executive/executive').then(m => m.Executive),
     title: 'Panel ejecutivo | PneumaCare',
-    canActivate: [authGuard, roleGuard('ROLE_DIRECTOR', 'ROLE_ADMIN')],
+    canActivate: [authGuard, roleGuard('ROLE_DIRECTOR', 'ROLE_ADMIN', 'ROLE_CHIEF_OF_GUARD')],
   },
   {
     path: 'users',
     loadComponent: () => import('./features/users/users').then(m => m.Users),
     title: 'Usuarios | PneumaCare',
     canActivate: [authGuard, roleGuard('ROLE_ADMIN', 'ROLE_CHIEF_OF_GUARD')],
+  },
+  {
+    path: 'ventilators',
+    loadComponent: () => import('./features/ventilators/ventilators').then(m => m.Ventilators),
+    title: 'Ventiladores | PneumaCare',
+    canActivate: [authGuard, roleGuard('ROLE_ADMIN', 'ROLE_CHIEF_OF_GUARD')],
+  },
+  {
+    path: 'settings',
+    loadComponent: () => import('./features/settings/settings').then(m => m.Settings),
+    title: 'Configuración | PneumaCare',
+    canActivate: [authGuard, roleGuard('ROLE_ADMIN')],
   },
   {
     path: 'beds/new',

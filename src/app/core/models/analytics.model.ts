@@ -4,7 +4,6 @@ export interface OccupancyStats {
   total: number;
   occupied: number;
   available: number;
-  maintenance: number;
   occupancyRate: number;
 }
 
@@ -22,10 +21,38 @@ export interface TrendPoint {
   count: number;
 }
 
+export interface LungProtectionStats {
+  /** Patients whose latest evaluation carries ΔP > 15 cmH₂O (mortality-associated). */
+  highDrivingPressurePatients: number;
+}
+
+export interface VentilationStats {
+  currentlyIntubated: number;
+  intubationDaysInWindow: number;
+}
+
+/** WIND-aligned weaning difficulty (approximated from SBT attempt counts). */
+export interface WeaningClassificationStats {
+  noAttempt: number;
+  simple: number;
+  difficult: number;
+  prolonged: number;
+}
+
+export interface ExtubationStats {
+  extubations: number;
+  reintubations48h: number;
+  successRatePercent: number;
+}
+
 export interface ClinicalAnalytics {
   occupancy: OccupancyStats;
   weaning: WeaningStats;
   evaluationTrend: TrendPoint[];
+  lungProtection: LungProtectionStats;
+  ventilation: VentilationStats;
+  weaningClassification: WeaningClassificationStats;
+  extubation: ExtubationStats;
 }
 
 export interface WardAnalytics {
@@ -49,10 +76,41 @@ export interface AnalyticsSummary {
 
 export type AnalyticsSummaryApiResponse = ApiResponse<AnalyticsSummary>;
 
+export interface AssetUtilization {
+  inUse: number;
+  available: number;
+  maintenance: number;
+  utilizationPercent: number;
+}
+
 export interface ExecutiveDashboard {
   occupancyRatePercent: number;
   alertFrequencyLast7Days: number;
   equipmentInMaintenanceCount: number;
+  assetUtilization: AssetUtilization;
+  averageStayDays: number;
 }
 
 export type ExecutiveDashboardApiResponse = ApiResponse<ExecutiveDashboard>;
+
+export type HierarchyLevel = 'PROVINCE' | 'INSTITUTION' | 'PATIENT';
+
+export interface HierarchyRow {
+  entityId: string;
+  name: string;
+  subtitle: string | null;
+  totalBeds: number;
+  occupied: number;
+  available: number;
+  occupancyRatePercent: number;
+  activeAlerts: number;
+  evaluationsInWindow: number;
+}
+
+export interface HierarchyAnalytics {
+  level: HierarchyLevel;
+  windowDays: number;
+  rows: HierarchyRow[];
+}
+
+export type HierarchyAnalyticsApiResponse = ApiResponse<HierarchyAnalytics>;
