@@ -11,11 +11,6 @@ export const routes: Routes = [
     title: 'Iniciar sesión | PneumaCare',
   },
   {
-    path: 'register',
-    loadComponent: () => import('./features/register/register').then(m => m.Register),
-    title: 'Crear cuenta | PneumaCare',
-  },
-  {
     path: '',
     component: Home,
     title: 'PneumaCare',

@@ -5,11 +5,11 @@ export type VentilatorStatus = 'AVAILABLE' | 'IN_USE' | 'MAINTENANCE';
 /** Inventory catalogue brands accepted by the backend (inventory context enum). */
 export type VentilatorBrand = 'TECME' | 'NEUMOVENT';
 
+/** The ICU is derived server-side from the session; it is not part of the payload. */
 export interface CreateVentilatorRequest {
   serialNumber: string;
   brand: VentilatorBrand;
   modelName: string;
-  icuId: string;
 }
 
 export interface Ventilator {

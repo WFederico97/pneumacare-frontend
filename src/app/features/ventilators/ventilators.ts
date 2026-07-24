@@ -12,7 +12,6 @@ import { Ventilator, VentilatorBrand, VentilatorStatus } from '../../core/models
  * registrations to the actor's ICU, this falls back to the seeded dev ICU
  * (same convention as the admission modal).
  */
-const DEV_DEFAULT_ICU_ID = 'cccccccc-0000-0000-0000-000000000001';
 
 const BRANDS: readonly VentilatorBrand[] = ['TECME', 'NEUMOVENT'];
 
@@ -125,7 +124,6 @@ export class Ventilators implements OnInit {
         serialNumber: serialNumber.trim(),
         brand,
         modelName: modelName.trim(),
-        icuId: DEV_DEFAULT_ICU_ID,
       })
       .subscribe({
         next: () => {

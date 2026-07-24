@@ -10,7 +10,6 @@ export interface CreatePatientRequest {
   lastName: string;
   birthDate: string;
   identifier: PatientIdentifierRequest;
-  icuId: string;
   bedId: string;
 }
 
