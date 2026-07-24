@@ -1,0 +1,109 @@
+<div class="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm" (click)="handleClose()" aria-hidden="true"></div>
+
+<section
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="discharge-modal-title"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4"
+>
+  <div class="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl" (click)="$event.stopPropagation()">
+    <header class="border-b border-slate-700/80 px-5 py-4">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="discharge-modal-title" class="text-lg font-semibold text-slate-100">Egresar paciente</h2>
+          <p class="mt-1 text-sm text-slate-400">
+            {{ patientName() }} · Se cierra el episodio, se libera la cama y el ventilador asignado.
+          </p>
+        </div>
+        <button
+          type="button"
+          (click)="handleClose()"
+          class="min-h-[44px] rounded-md border border-slate-600 px-3 py-2 text-xs text-slate-300 transition-colors hover:border-cyan-400 hover:text-cyan-200"
+        >
+          ESC
+        </button>
+      </div>
+    </header>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-4 px-5 py-4">
+      <p role="note" class="rounded-md border border-amber-500/50 bg-amber-950/40 px-3 py-2 text-sm text-amber-100">
+        El egreso no puede deshacerse desde la aplicación.
+      </p>
+
+      @if (hasArtificialAirway()) {
+        <p role="alert" class="rounded-md border border-amber-500/50 bg-amber-950/40 px-3 py-2 text-sm text-amber-100">
+          El paciente tiene vía aérea artificial: registrá la extubación o decanulación antes de un
+          alta a domicilio o pase a sala.
+        </p>
+      }
+
+      <fieldset>
+        <legend class="mb-1 block text-xs font-medium text-slate-300">
+          Motivo de egreso <span aria-hidden="true" class="text-red-400">*</span><span class="sr-only"> (obligatorio)</span>
+        </legend>
+        <div class="space-y-2">
+          @for (option of options; track option.value) {
+            <label
+              class="flex items-start gap-2 rounded-lg border px-3 py-2 text-sm"
+              [class]="isDispositionAllowed(option.value)
+                ? 'cursor-pointer border-slate-600 bg-slate-950 text-slate-100 hover:border-cyan-400'
+                : 'cursor-not-allowed border-slate-800 bg-slate-900/60 text-slate-500'"
+            >
+              <input
+                type="radio"
+                formControlName="disposition"
+                [value]="option.value"
+                [disabled]="!isDispositionAllowed(option.value)"
+                class="mt-0.5 accent-cyan-400"
+              />
+              <span>
+                <span class="block font-medium">{{ option.label }}</span>
+                <span class="block text-xs text-slate-400">{{ option.hint }}</span>
+                @if (!isDispositionAllowed(option.value)) {
+                  <span class="block text-xs text-amber-300">no disponible con vía aérea artificial</span>
+                }
+              </span>
+            </label>
+          }
+        </div>
+      </fieldset>
+
+      <div>
+        <label for="dischargeDate" class="mb-1 block text-xs font-medium text-slate-300">
+          Fecha y hora del egreso
+          <span class="text-slate-500">(opcional — por defecto, ahora)</span>
+        </label>
+        <input
+          id="dischargeDate"
+          type="datetime-local"
+          formControlName="dischargeDate"
+          class="w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus-visible:border-cyan-400 focus-visible:outline-none"
+        />
+      </div>
+
+      @if (submitError()) {
+        <p role="alert" class="rounded-md border border-red-500/50 bg-red-950/40 px-3 py-2 text-sm text-red-100">
+          {{ submitError() }}
+        </p>
+      }
+
+      <div class="flex justify-end gap-2 border-t border-slate-700/80 pt-4">
+        <button
+          type="button"
+          (click)="handleClose()"
+          [disabled]="isSubmitting()"
+          class="min-h-[40px] rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-slate-400 disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="!canSubmit()"
+          class="min-h-[40px] rounded-lg border border-red-500/60 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-100 transition-colors hover:border-red-400 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:border-slate-700 disabled:bg-slate-800/60 disabled:text-slate-500"
+        >
+          {{ isSubmitting() ? 'Egresando…' : 'Confirmar egreso' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

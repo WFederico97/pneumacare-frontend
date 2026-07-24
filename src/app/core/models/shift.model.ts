@@ -40,3 +40,19 @@ export interface Handover {
 
 /** POST /api/v1/shifts/{id}/handovers returns the created Handover. */
 export type HandoverApiResponse = ApiResponse<Handover>;
+
+/**
+ * A shift plus its duration and the clinical activity recorded during it —
+ * mirrors the backend ShiftSummaryResponse (GET /api/v1/shifts).
+ */
+export interface ShiftSummary extends Shift {
+  /** Elapsed minutes; keeps growing while the shift is OPEN. */
+  durationMinutes: number;
+  handoverCount: number;
+  evaluationCount: number;
+  airwayEventCount: number;
+  sbtCount: number;
+}
+
+export type ShiftHistoryApiResponse = ApiResponse<ShiftSummary[]>;
+export type HandoversApiResponse = ApiResponse<Handover[]>;

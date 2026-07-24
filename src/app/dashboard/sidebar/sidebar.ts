@@ -27,6 +27,7 @@ export class Sidebar {
     { label: 'Tablero', short: 'TB', route: '/', exact: true },
     { label: 'Pacientes', short: 'PC', route: '/patients' },
     { label: 'Camas', short: 'CM', route: '/beds/new' },
+    { label: 'Turnos', short: 'TU', route: '/shifts' },
     { label: 'Alertas', short: 'AL', route: '/alerts' },
     { label: 'Analítica', short: 'AN', route: '/analytics' },
     { label: 'Dirección', short: 'DR', route: '/executive', roles: ['ROLE_DIRECTOR', 'ROLE_ADMIN', 'ROLE_CHIEF_OF_GUARD'] },

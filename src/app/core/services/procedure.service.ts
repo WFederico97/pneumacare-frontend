@@ -1,8 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 import {
   AirwayEventApiResponse,
+  AirwayTransitionsApiResponse,
   CreateAirwayEventRequest,
   CreateSbtRequest,
   SbtApiResponse,
@@ -23,5 +25,19 @@ export class ProcedureService {
 
   createSbt(payload: CreateSbtRequest): Observable<SbtApiResponse> {
     return this.http.post<SbtApiResponse>('/api/v1/procedures/sbt', payload);
+  }
+
+  /**
+   * The airway state machine as published by the server. Cached for the app's
+   * lifetime: the transition table only changes when the backend is redeployed,
+   * and every modal open would otherwise refetch it.
+   */
+  private airwayTransitions$?: Observable<AirwayTransitionsApiResponse>;
+
+  getAirwayTransitions(): Observable<AirwayTransitionsApiResponse> {
+    this.airwayTransitions$ ??= this.http
+      .get<AirwayTransitionsApiResponse>('/api/v1/procedures/airway/transitions')
+      .pipe(shareReplay({ bufferSize: 1, refCount: false }));
+    return this.airwayTransitions$;
   }
 }

@@ -35,6 +35,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'shifts',
+    loadComponent: () => import('./features/shifts/shifts').then(m => m.Shifts),
+    title: 'Turnos | PneumaCare',
+    canActivate: [authGuard],
+  },
+  {
     path: 'alerts',
     loadComponent: () => import('./features/alerts/alerts').then(m => m.Alerts),
     title: 'Alertas | PneumaCare',
