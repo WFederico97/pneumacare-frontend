@@ -49,3 +49,11 @@ export function initialsFrom(displayName: string | null | undefined): string {
   }
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
+
+/** Payload posted to POST /api/v1/auth/password. */
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export type ChangePasswordApiResponse = ApiResponse<void>;

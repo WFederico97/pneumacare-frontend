@@ -68,7 +68,7 @@
         <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Historia clínica</h2>
 
         <div class="flex items-center gap-2">
-          @if (canAssign()) {
+          @if (canAssign() && isEpisodeOpen()) {
             <button
               type="button"
               (click)="openModal('asset')"
@@ -88,6 +88,7 @@
             </button>
           }
 
+          @if (isEpisodeOpen()) {
           <div class="relative">
           <button
             type="button"
@@ -122,10 +123,15 @@
             </div>
           }
           </div>
+          }
         </div>
       </div>
 
-      @if (!isShiftOpen()) {
+      @if (!isEpisodeOpen()) {
+        <p class="mb-3 text-xs text-slate-500">
+          Episodio cerrado: la historia clínica es de solo lectura.
+        </p>
+      } @else if (!isShiftOpen()) {
         <p class="mb-3 text-xs text-slate-500">
           Abre un turno para registrar nuevos eventos clínicos.
         </p>

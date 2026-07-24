@@ -167,11 +167,15 @@ export class PatientDetail implements OnInit {
     }
   }
 
+  /**
+   * A closed episode (discharged / transferred / deceased) is read-only: the
+   * server rejects any clinical write against it with a 409, so offering the
+   * controls would only lead to a form that cannot succeed.
+   */
+  readonly isEpisodeOpen = computed(() => this.patient()?.clinicalStatus === 'ADMITTED');
+
   /** An episode that is no longer ADMITTED cannot be discharged again. */
-  readonly canDischarge = computed(() => {
-    const p = this.patient();
-    return !!p && p.clinicalStatus === 'ADMITTED' && this.canAssign();
-  });
+  readonly canDischarge = computed(() => this.isEpisodeOpen() && this.canAssign());
 
   private loadActiveAssignment(id: string): void {
     this.assetService.getActive(id).subscribe({

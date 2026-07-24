@@ -1,7 +1,12 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { LoginApiResponse, LoginData, } from './auth.model';
+import {
+  ChangePasswordApiResponse,
+  ChangePasswordRequest,
+  LoginApiResponse,
+  LoginData,
+} from './auth.model';
 
 /** sessionStorage key holding the non-sensitive auth marker (never the token). */
 const AUTH_MARKER_KEY = 'pnmc_auth';
@@ -59,6 +64,14 @@ export class AuthService {
   /** Creates an account; the backend logs the user in and returns the profile. */
 
   /** Clears server cookies, then resets in-memory + persisted state regardless of outcome. */
+  /**
+   * Changes the signed-in user's own password. The server re-issues the session
+   * cookie, so the caller stays authenticated.
+   */
+  changePassword(request: ChangePasswordRequest): Observable<ChangePasswordApiResponse> {
+    return this.http.post<ChangePasswordApiResponse>('/api/v1/auth/password', request);
+  }
+
   logout(): Observable<unknown> {
     return this.http
       .post('/api/v1/auth/logout', {})
