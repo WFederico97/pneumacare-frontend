@@ -413,8 +413,9 @@ export class VentilatorForm implements OnInit {
       return;
     }
 
-    const activeShift = this.shiftService.activeShift();
-    if (!activeShift) {
+    // Pre-check only: the backend resolves the shift itself, but failing here
+    // gives a clearer message than a 409 after a full round-trip.
+    if (!this.shiftService.activeShift()) {
       this.setSubmitError('No hay un turno activo. No se pueden registrar evaluaciones.');
       return;
     }
@@ -442,7 +443,6 @@ export class VentilatorForm implements OnInit {
 
     const payload: CreateEvaluationRequest = {
       patientId: currentPatientId,
-      shiftId: activeShift.id,
       physicalVentilatorId: assignment.ventilatorId,
       brand,
       f: v.f!,
