@@ -83,12 +83,42 @@ export interface AssetUtilization {
   utilizationPercent: number;
 }
 
+/**
+ * Episode mortality over the 30-day window. `withdrawalOfCare` is reported
+ * apart from `deceased`; `icuMortalityPercent` counts both. The weaning-failure
+ * cohort is closed episodes with a failed SBT or a 48 h reintubation.
+ */
+export interface MortalityStats {
+  closedEpisodes: number;
+  deceased: number;
+  withdrawalOfCare: number;
+  icuMortalityPercent: number;
+  weaningFailureCohort: number;
+  weaningFailureDeceased: number;
+  weaningFailureMortalityPercent: number;
+}
+
+/** Readmissions of the same person after a windowed discharge. */
+export interface ReadmissionStats {
+  readmissions48h: number;
+  readmissions7d: number;
+  rate48hPercent: number;
+  rate7dPercent: number;
+}
+
 export interface ExecutiveDashboard {
   occupancyRatePercent: number;
   alertFrequencyLast7Days: number;
   equipmentInMaintenanceCount: number;
   assetUtilization: AssetUtilization;
+  /** True ALOS: mean stay of episodes CLOSED in the window (not the census). */
   averageStayDays: number;
+  /** Mean current stay of patients still admitted. */
+  currentCensusMeanStayDays: number;
+  /** Episodes closed in the window / total beds. */
+  bedTurnover: number;
+  mortality: MortalityStats;
+  readmissions: ReadmissionStats;
 }
 
 export type ExecutiveDashboardApiResponse = ApiResponse<ExecutiveDashboard>;

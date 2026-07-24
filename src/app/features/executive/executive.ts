@@ -15,7 +15,7 @@ interface ExecutiveKpi {
   readonly label: string;
   readonly value: string;
   readonly ariaLabel: string;
-  readonly icon: 'bed' | 'bell' | 'wrench';
+  readonly icon: 'bed' | 'bell' | 'wrench' | 'chart' | 'pulse';
 }
 
 /**
@@ -80,10 +80,42 @@ export class Executive implements OnInit {
         icon: 'wrench',
       },
       {
-        label: 'Estancia media (actual)',
+        // True ALOS — episodes CLOSED in the window, not the current census.
+        label: 'Estancia media (egresos)',
         value: `${d.averageStayDays} d`,
-        ariaLabel: `Estancia media actual: ${d.averageStayDays} días`,
+        ariaLabel: `Estancia media de egresos: ${d.averageStayDays} días sobre ${d.mortality.closedEpisodes} episodios cerrados`,
         icon: 'bed',
+      },
+      {
+        label: 'Estancia media (internados)',
+        value: `${d.currentCensusMeanStayDays} d`,
+        ariaLabel: `Estancia media de pacientes internados: ${d.currentCensusMeanStayDays} días`,
+        icon: 'bed',
+      },
+      {
+        label: 'Rotación de camas',
+        value: `${d.bedTurnover}`,
+        ariaLabel: `Rotación de camas: ${d.bedTurnover} egresos por cama en 30 días`,
+        icon: 'chart',
+      },
+      {
+        label: 'Mortalidad UCI',
+        value: `${d.mortality.icuMortalityPercent}%`,
+        ariaLabel: `Mortalidad en UCI: ${d.mortality.icuMortalityPercent} por ciento, ${d.mortality.deceased} fallecidos y ${d.mortality.withdrawalOfCare} por adecuación del esfuerzo terapéutico sobre ${d.mortality.closedEpisodes} episodios cerrados`,
+        icon: 'pulse',
+      },
+      {
+        // Fraction, not a percentage: the cohort denominator is typically small.
+        label: 'Mortalidad fallo weaning',
+        value: `${d.mortality.weaningFailureDeceased}/${d.mortality.weaningFailureCohort}`,
+        ariaLabel: `Mortalidad asociada a fallo de weaning: ${d.mortality.weaningFailureDeceased} de ${d.mortality.weaningFailureCohort} episodios con fallo de destete`,
+        icon: 'pulse',
+      },
+      {
+        label: 'Reingresos (7 días)',
+        value: `${d.readmissions.readmissions7d}`,
+        ariaLabel: `Reingresos dentro de 7 días: ${d.readmissions.readmissions7d}, tasa ${d.readmissions.rate7dPercent} por ciento. Dentro de 48 horas: ${d.readmissions.readmissions48h}`,
+        icon: 'chart',
       },
       {
         label: 'Equipos en mantenimiento',
