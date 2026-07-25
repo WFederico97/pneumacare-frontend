@@ -25,3 +25,34 @@ export type ActiveShiftApiResponse = ApiResponse<Shift | null>;
 
 /** POST /api/v1/shifts and PATCH /api/v1/shifts/{id}/close both return a Shift. */
 export type ShiftApiResponse = ApiResponse<Shift>;
+
+/**
+ * Mirrors the backend HandoverResponse DTO — an immutable shift handover note.
+ */
+export interface Handover {
+  id: string;
+  shiftId: string;
+  authorId: string;
+  notesContent: string;
+  /** ISO-8601 UTC timestamp when the note was created. */
+  createdAt: string;
+}
+
+/** POST /api/v1/shifts/{id}/handovers returns the created Handover. */
+export type HandoverApiResponse = ApiResponse<Handover>;
+
+/**
+ * A shift plus its duration and the clinical activity recorded during it —
+ * mirrors the backend ShiftSummaryResponse (GET /api/v1/shifts).
+ */
+export interface ShiftSummary extends Shift {
+  /** Elapsed minutes; keeps growing while the shift is OPEN. */
+  durationMinutes: number;
+  handoverCount: number;
+  evaluationCount: number;
+  airwayEventCount: number;
+  sbtCount: number;
+}
+
+export type ShiftHistoryApiResponse = ApiResponse<ShiftSummary[]>;
+export type HandoversApiResponse = ApiResponse<Handover[]>;

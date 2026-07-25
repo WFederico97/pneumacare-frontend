@@ -17,7 +17,20 @@
     } @else {
       <div class="rounded-lg border border-cyan-500/30 bg-cyan-950/20 p-3 text-xs text-cyan-100">
         Cama activa: <span class="font-semibold">{{ selectedBedNumber() }}</span>
+        @if (activeAssignment(); as assignment) {
+          · Ventilador: <span class="font-mono font-semibold">{{ assignment.serialNumber }}</span>
+        }
       </div>
+      @if (activeAssignment() === null) {
+        <div
+          class="rounded-lg border border-amber-500/40 bg-amber-950/30 p-3 text-xs text-amber-200"
+          role="status"
+          aria-live="polite"
+        >
+          El paciente no tiene un ventilador asignado. Asignale un equipo desde su historia clínica
+          para poder registrar evaluaciones.
+        </div>
+      }
     }
 
     <div>
@@ -56,14 +69,33 @@
       </div>
     </div>
 
+    <!-- Aviso: campos que conservan el valor del preset sin modificación manual -->
+    @if (presetUnmodifiedCount() > 0) {
+      <div
+        class="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-950/25 p-2.5 text-xs text-amber-200"
+        role="status"
+        aria-live="polite"
+      >
+        <span aria-hidden="true" class="mt-0.5 inline-block h-2 w-2 flex-none rounded-full bg-amber-400"></span>
+        <span>
+          <span class="font-semibold">{{ presetUnmodifiedCount() }}</span>
+          {{ presetUnmodifiedCount() === 1 ? 'campo conserva' : 'campos conservan' }}
+          el valor del perfil «{{ activePreset() }}» sin modificar. Se enviarán tal cual.
+        </span>
+      </div>
+    }
+
     <!-- WCAG 1.3.1 / 4.1.2: fieldset groups clinical parameters for screen readers -->
     <fieldset class="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <legend class="sr-only">Parámetros ventilatorios para evaluación clínica</legend>
 
       <div>
-        <label for="f" class="mb-1 block text-xs font-medium text-slate-300">Frecuencia respiratoria (f)</label>
+        <label for="f" class="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-300">Frecuencia respiratoria (f)
+          @if (isPresetUnmodified('f')) { <span class="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">preset</span> }
+        </label>
         <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
-             [class.border-red-500]="isInvalid('f')">
+             [class.border-red-500]="isInvalid('f')"
+             [class.border-amber-400]="isPresetUnmodified('f') && !isInvalid('f')">
           <input
             id="f"
             type="number"
@@ -85,9 +117,12 @@
       </div>
 
       <div>
-        <label for="vt" class="mb-1 block text-xs font-medium text-slate-300">Volumen corriente (Vt)</label>
+        <label for="vt" class="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-300">Volumen corriente (Vt)
+          @if (isPresetUnmodified('vt')) { <span class="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">preset</span> }
+        </label>
         <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
-             [class.border-red-500]="isInvalid('vt')">
+             [class.border-red-500]="isInvalid('vt')"
+             [class.border-amber-400]="isPresetUnmodified('vt') && !isInvalid('vt')">
           <input
             id="vt"
             type="number"
@@ -109,9 +144,12 @@
       </div>
 
       <div>
-        <label for="fio2" class="mb-1 block text-xs font-medium text-slate-300">FiO₂</label>
+        <label for="fio2" class="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-300">FiO₂
+          @if (isPresetUnmodified('fio2')) { <span class="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">preset</span> }
+        </label>
         <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
-             [class.border-red-500]="isInvalid('fio2')">
+             [class.border-red-500]="isInvalid('fio2')"
+             [class.border-amber-400]="isPresetUnmodified('fio2') && !isInvalid('fio2')">
           <input
             id="fio2"
             type="number"
@@ -135,9 +173,12 @@
       </div>
 
       <div>
-        <label for="pao2" class="mb-1 block text-xs font-medium text-slate-300">PaO₂</label>
+        <label for="pao2" class="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-300">PaO₂
+          @if (isPresetUnmodified('pao2')) { <span class="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">preset</span> }
+        </label>
         <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
-             [class.border-red-500]="isInvalid('pao2')">
+             [class.border-red-500]="isInvalid('pao2')"
+             [class.border-amber-400]="isPresetUnmodified('pao2') && !isInvalid('pao2')">
           <input
             id="pao2"
             type="number"
@@ -159,9 +200,12 @@
       </div>
 
       <div>
-        <label for="peep" class="mb-1 block text-xs font-medium text-slate-300">PEEP</label>
+        <label for="peep" class="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-300">PEEP
+          @if (isPresetUnmodified('peep')) { <span class="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">preset</span> }
+        </label>
         <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
-             [class.border-red-500]="isInvalid('peep')">
+             [class.border-red-500]="isInvalid('peep')"
+             [class.border-amber-400]="isPresetUnmodified('peep') && !isInvalid('peep')">
           <input
             id="peep"
             type="number"
@@ -183,9 +227,12 @@
       </div>
 
       <div>
-        <label for="pplat" class="mb-1 block text-xs font-medium text-slate-300">Presión plateau (Pplat)</label>
+        <label for="pplat" class="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-300">Presión plateau (Pplat)
+          @if (isPresetUnmodified('pplat')) { <span class="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">preset</span> }
+        </label>
         <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
-             [class.border-red-500]="isInvalid('pplat') || showPlatCrossError()">
+             [class.border-red-500]="isInvalid('pplat') || showPlatCrossError()"
+             [class.border-amber-400]="isPresetUnmodified('pplat') && !isInvalid('pplat') && !showPlatCrossError()">
           <input
             id="pplat"
             type="number"
@@ -214,53 +261,33 @@
       </div>
     </fieldset>
 
-    @if (selectedBrand() === 'TECME') {
+    <!-- Parámetros extendidos: dinámicos según la marca/modelo (esquema del backend) -->
+    @for (field of extendedFields(); track field.key) {
       <div>
-        <label for="triggerFlow" class="mb-1 block text-xs font-medium text-slate-300">Trigger por flujo</label>
+        <label [for]="field.key" class="mb-1 flex items-center gap-1.5 text-xs font-medium text-slate-300">{{ field.label }}
+          @if (isPresetUnmodified($any(field.key))) { <span class="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-300">preset</span> }
+        </label>
         <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
-             [class.border-red-500]="isInvalid('triggerFlow')">
+             [class.border-red-500]="isInvalid($any(field.key))"
+             [class.border-amber-400]="isPresetUnmodified($any(field.key)) && !isInvalid($any(field.key))">
           <input
-            id="triggerFlow"
+            [id]="field.key"
             type="number"
             inputmode="decimal"
-            formControlName="triggerFlow"
-            (input)="onNumericInput('triggerFlow', $event)"
-            aria-required="true"
-            [attr.aria-invalid]="isInvalid('triggerFlow') ? 'true' : null"
-            [attr.aria-describedby]="isInvalid('triggerFlow') ? 'triggerFlow-error' : null"
-            class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
-          >
-          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">L/min</span>
-        </div>
-        @if (isInvalid('triggerFlow')) {
-          <p id="triggerFlow-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
-            {{ errorMessage('triggerFlow') }}
-          </p>
-        }
-      </div>
-    } @else {
-      <div>
-        <label for="inspTime" class="mb-1 block text-xs font-medium text-slate-300">Tiempo inspiratorio</label>
-        <div class="flex min-h-[44px] items-stretch rounded-lg border border-slate-600 bg-slate-950 transition-colors focus-within:border-cyan-400"
-             [class.border-red-500]="isInvalid('inspTime')">
-          <input
-            id="inspTime"
-            type="number"
-            inputmode="decimal"
-            step="0.1"
-            formControlName="inspTime"
-            (input)="onNumericInput('inspTime', $event)"
+            [step]="field.step"
+            [formControlName]="field.key"
+            (input)="onNumericInput($any(field.key), $event)"
             (keydown)="replaceCommaWithDot($event)"
-            aria-required="true"
-            [attr.aria-invalid]="isInvalid('inspTime') ? 'true' : null"
-            [attr.aria-describedby]="isInvalid('inspTime') ? 'inspTime-error' : null"
+            [attr.aria-required]="field.required ? 'true' : null"
+            [attr.aria-invalid]="isInvalid($any(field.key)) ? 'true' : null"
+            [attr.aria-describedby]="isInvalid($any(field.key)) ? field.key + '-error' : null"
             class="w-full rounded-l-lg bg-transparent px-3 py-2 text-sm text-slate-100 focus:outline-none"
           >
-          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">s</span>
+          <span class="inline-flex items-center rounded-r-lg border-l border-slate-700 px-3 text-xs text-slate-400" aria-hidden="true">{{ field.unit }}</span>
         </div>
-        @if (isInvalid('inspTime')) {
-          <p id="inspTime-error" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
-            {{ errorMessage('inspTime') }}
+        @if (isInvalid($any(field.key))) {
+          <p [id]="field.key + '-error'" role="alert" class="mt-1 rounded-md border border-red-500/70 bg-red-950/60 px-2 py-1 text-xs font-medium text-red-100">
+            {{ errorMessage($any(field.key)) }}
           </p>
         }
       </div>
@@ -272,7 +299,7 @@
         role="status"
         aria-live="polite"
         aria-label="Vista previa de métricas calculadas"
-        class="grid grid-cols-3 gap-2 rounded-xl border border-slate-700/60 bg-slate-900/60 p-3"
+        class="grid grid-cols-2 gap-2 rounded-xl border border-slate-700/60 bg-slate-900/60 p-3 sm:grid-cols-4"
       >
         <div class="text-center">
           <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">RSBI</p>
@@ -309,6 +336,18 @@
             <p class="mt-0.5 font-mono text-lg font-bold leading-none text-slate-600">—</p>
           }
         </div>
+
+        <div class="text-center">
+          <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">ΔP</p>
+          @if (liveDrivingPressure() !== null) {
+            <p class="mt-0.5 font-mono text-lg font-bold leading-none" [class]="liveDrivingPressureClass()">
+              {{ liveDrivingPressure() | number: '1.0-0' }}
+            </p>
+            <p class="mt-0.5 text-xs text-slate-500">cmH₂O</p>
+          } @else {
+            <p class="mt-0.5 font-mono text-lg font-bold leading-none text-slate-600">—</p>
+          }
+        </div>
       </div>
     }
 
@@ -341,7 +380,7 @@
         <span class="ml-2 text-cyan-300/60">— Resultados de la última evaluación</span>
       </div>
 
-      <div class="grid grid-cols-3 gap-3">
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div class="rounded-xl border p-3 text-center" [class]="rsbiColorClass(result.rsbiInterpretation)">
           <p class="text-xs font-semibold uppercase tracking-wide opacity-80">RSBI</p>
           <p class="mt-1 text-xl font-bold">{{ result.rsbiSnapshot | number: '1.1-1' }}</p>
@@ -361,6 +400,13 @@
           <p class="mt-1 text-xl font-bold">{{ result.cstatSnapshot | number: '1.1-1' }}</p>
           <p class="text-xs font-medium opacity-70">mL/cmH₂O</p>
           <p class="mt-1 text-xs font-semibold">{{ cstatLabel(result.cstatInterpretation) }}</p>
+        </div>
+
+        <div class="rounded-xl border p-3 text-center" [class]="drivingPressureColorClass(result.drivingPressureBand)">
+          <p class="text-xs font-semibold uppercase tracking-wide opacity-80">ΔP</p>
+          <p class="mt-1 text-xl font-bold">{{ result.drivingPressure | number: '1.0-0' }}</p>
+          <p class="text-xs font-medium opacity-70">cmH₂O</p>
+          <p class="mt-1 text-xs font-semibold">{{ drivingPressureLabel(result.drivingPressureBand) }}</p>
         </div>
       </div>
 

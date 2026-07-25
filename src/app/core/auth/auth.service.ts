@@ -1,7 +1,12 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { LoginApiResponse, LoginData, RegisterRequest } from './auth.model';
+import {
+  ChangePasswordApiResponse,
+  ChangePasswordRequest,
+  LoginApiResponse,
+  LoginData,
+} from './auth.model';
 
 /** sessionStorage key holding the non-sensitive auth marker (never the token). */
 const AUTH_MARKER_KEY = 'pnmc_auth';
@@ -12,7 +17,7 @@ const AUTH_MARKER_KEY = 'pnmc_auth';
  * <p>The JWT is never visible to JavaScript: it lives only in the backend's
  * HttpOnly auth cookie (PNMC-112). This service holds only the non-sensitive
  * profile (display name + roles) returned by {@code /auth/login} and
- * {@code /auth/register}, exposed as Signals. The browser attaches the cookie
+ * {@code /auth/login}, exposed as Signals. The browser attaches the cookie
  * automatically on every request (see the credentials interceptor), so there is
  * no Bearer header.
  *
@@ -57,13 +62,16 @@ export class AuthService {
   }
 
   /** Creates an account; the backend logs the user in and returns the profile. */
-  register(request: RegisterRequest): Observable<LoginApiResponse> {
-    return this.http
-      .post<LoginApiResponse>('/api/v1/auth/register', request)
-      .pipe(tap((response) => this.applyProfile(response.data)));
-  }
 
   /** Clears server cookies, then resets in-memory + persisted state regardless of outcome. */
+  /**
+   * Changes the signed-in user's own password. The server re-issues the session
+   * cookie, so the caller stays authenticated.
+   */
+  changePassword(request: ChangePasswordRequest): Observable<ChangePasswordApiResponse> {
+    return this.http.post<ChangePasswordApiResponse>('/api/v1/auth/password', request);
+  }
+
   logout(): Observable<unknown> {
     return this.http
       .post('/api/v1/auth/logout', {})

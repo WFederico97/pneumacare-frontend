@@ -49,6 +49,13 @@ export class BedsCreate implements OnInit {
 
   submit(): void {
     this.form.markAllAsTouched();
+
+    // Clear the previous outcome before any early return: the validation paths
+    // below bail out, and a stale success banner next to a fresh error reads as
+    // two contradictory answers to the same submission.
+    this.submitError.set(null);
+    this.createdBed.set(null);
+
     if (this.form.invalid || this.isSubmitting()) {
       return;
     }
@@ -64,8 +71,6 @@ export class BedsCreate implements OnInit {
     }
 
     this.isSubmitting.set(true);
-    this.submitError.set(null);
-    this.createdBed.set(null);
 
     this.icuBedsService.createBed(bedNumber).subscribe({
       next: (bed) => {

@@ -5,7 +5,6 @@ import { IdentifierType } from '../../core/models/identifier-type.model';
 import { IdentifierTypeService } from '../../core/services/identifier-type.service';
 import { PatientService } from '../../core/services/patient.service';
 
-const DEV_DEFAULT_ICU_ID = 'cccccccc-0000-0000-0000-000000000001';
 const DNI_PATTERN = /^[0-9]{7,8}$/;
 
 const FOCUSABLE_SELECTOR =
@@ -138,12 +137,6 @@ export class AdmissionModal implements OnInit {
       return;
     }
 
-    const icuId = this.resolveIcuId();
-    if (!icuId) {
-      this.submitError.set('No se pudo resolver la UCI del usuario autenticado.');
-      return;
-    }
-
     this.isSubmitting.set(true);
 
     this.patientService
@@ -155,7 +148,6 @@ export class AdmissionModal implements OnInit {
           identifierTypeId: this.form.controls.identifierTypeId.value,
           value: this.form.controls.identifier.value.trim(),
         },
-        icuId,
         bedId: bed.bedId,
       })
       .subscribe({
@@ -209,15 +201,4 @@ export class AdmissionModal implements OnInit {
     };
   }
 
-  /**
-   * Resolves the ICU the patient is admitted to.
-   *
-   * <p>Auth is cookie-based: the JWT lives in an HttpOnly cookie the SPA cannot
-   * read, so the ICU can no longer be derived client-side. The server owns the
-   * authenticated actor and should bind admissions to its ICU; until that lands
-   * this falls back to the seeded dev ICU.
-   */
-  private resolveIcuId(): string | null {
-    return DEV_DEFAULT_ICU_ID;
-  }
 }

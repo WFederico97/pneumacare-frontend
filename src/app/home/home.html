@@ -1,8 +1,4 @@
 <app-shell>
-  <div class="px-6 pt-6">
-    <app-quick-entry />
-  </div>
-
   @if (analytics()?.clinical) {
     <section aria-label="Resumen de ocupación" class="grid gap-4 px-6 pt-6 sm:grid-cols-3">
       <app-kpi-card label="Ocupación" [value]="occupancyPct()" />
@@ -52,7 +48,7 @@
         <ul class="flex gap-4 text-xs">
           <li>
             <a routerLink="/terms"
-               class="text-slate-400 hover:text-cyan-400 transition-colors
+               class="inline-block px-1 py-2 text-slate-400 hover:text-cyan-400 transition-colors
                       focus-visible:outline-none focus-visible:ring-2
                       focus-visible:ring-cyan-400 rounded">
               Términos y Condiciones
@@ -61,7 +57,7 @@
           <li aria-hidden="true" class="text-slate-700">·</li>
           <li>
             <a routerLink="/faq"
-               class="text-slate-400 hover:text-cyan-400 transition-colors
+               class="inline-block px-1 py-2 text-slate-400 hover:text-cyan-400 transition-colors
                       focus-visible:outline-none focus-visible:ring-2
                       focus-visible:ring-cyan-400 rounded">
               Preguntas Frecuentes

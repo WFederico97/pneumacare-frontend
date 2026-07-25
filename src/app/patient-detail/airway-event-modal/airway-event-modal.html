@@ -24,7 +24,11 @@
     </header>
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-4 px-5 py-4">
-      @if (!hasAllowedType()) {
+      @if (!transitionsLoaded()) {
+        <p class="rounded-md border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-300">
+          Cargando tipos de evento…
+        </p>
+      } @else if (!hasAllowedType()) {
         <p role="alert" class="rounded-md border border-amber-500/50 bg-amber-950/40 px-3 py-2 text-sm text-amber-100">
           No hay transiciones de vía aérea válidas desde el estado actual ({{ statusLabel() }}).
         </p>
@@ -35,7 +39,7 @@
           Tipo de evento <span aria-hidden="true" class="text-red-400">*</span><span class="sr-only"> (obligatorio)</span>
         </legend>
         <div class="space-y-2">
-          @for (type of allTypes; track type) {
+          @for (type of allTypes(); track type) {
             <label
               class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"
               [class]="isTypeAllowed(type)

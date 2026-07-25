@@ -21,13 +21,6 @@ export type LoginApiResponse = ApiResponse<LoginData>;
 /** Roles a user may self-assign at registration (mirrors the backend whitelist). */
 export type SelfRegisterRole = 'ROLE_THERAPIST' | 'ROLE_CHIEF_OF_GUARD';
 
-/** Payload posted to POST /api/v1/auth/register. */
-export interface RegisterRequest {
-  username: string;
-  password: string;
-  displayName: string;
-  role: SelfRegisterRole;
-}
 
 /** Human-readable Spanish labels for the backend role authorities. */
 const ROLE_LABELS: Record<string, string> = {
@@ -56,3 +49,11 @@ export function initialsFrom(displayName: string | null | undefined): string {
   }
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
+
+/** Payload posted to POST /api/v1/auth/password. */
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export type ChangePasswordApiResponse = ApiResponse<void>;

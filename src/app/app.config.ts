@@ -1,10 +1,15 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEsAr from '@angular/common/locales/es-AR';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import {
   provideHttpClient,
   withInterceptors,
   withXsrfConfiguration,
 } from '@angular/common/http';
+
+// The whole UI is Argentine Spanish; pipes (date, number) must match.
+registerLocaleData(localeEsAr);
 
 import { routes } from './app.routes';
 import {
@@ -14,6 +19,7 @@ import {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    { provide: LOCALE_ID, useValue: 'es-AR' },
     provideBrowserGlobalErrorListeners(),
     provideRouter(
       routes,

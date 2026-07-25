@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ShiftService } from '../../core/services/shift.service';
 import { UserContext } from '../../core/services/user-context.service';
+import { ShiftHandoverModal } from '../shift-handover-modal/shift-handover-modal';
 
 /**
  * Persistent active-shift indicator for the header (PNMC-93).
@@ -14,16 +15,12 @@ import { UserContext } from '../../core/services/user-context.service';
  */
 @Component({
   selector: 'app-shift-status',
-  imports: [],
+  imports: [ShiftHandoverModal],
   templateUrl: './shift-status.html',
   styleUrl: './shift-status.css',
   host: { class: 'block' },
 })
 export class ShiftStatus implements OnInit {
-  /** Dev seam: opening a shift needs an ICU. Until an ICU-picker US exists, use the
-   *  dev-seeded ICU id. The active shift carries its own icuId once one is open. */
-  private static readonly DEV_ICU_ID = 'cccccccc-0000-0000-0000-000000000001';
-
   private readonly shiftService = inject(ShiftService);
   private readonly userContext = inject(UserContext);
 
@@ -35,6 +32,9 @@ export class ShiftStatus implements OnInit {
 
   readonly isActionInFlight = signal(false);
   readonly actionError = signal<string | null>(null);
+
+  /** Shift id whose close-handover modal is open, or null when the modal is hidden. */
+  readonly closingShiftId = signal<string | null>(null);
 
   /** Localized opening time for the badge. */
   readonly startedAtLabel = computed(() => {
@@ -71,7 +71,7 @@ export class ShiftStatus implements OnInit {
     this.isActionInFlight.set(true);
     this.actionError.set(null);
 
-    this.shiftService.openShift(ShiftStatus.DEV_ICU_ID).subscribe({
+    this.shiftService.openShift().subscribe({
       next: () => {
         this.isActionInFlight.set(false);
         this.shiftService.refresh(true);
@@ -83,24 +83,23 @@ export class ShiftStatus implements OnInit {
     });
   }
 
-  closeShift(): void {
+  /** Opens the handover modal for the active shift; the modal records notes and closes it. */
+  requestClose(): void {
     const shift = this.activeShift();
     if (!shift || this.isActionInFlight()) {
       return;
     }
-    this.isActionInFlight.set(true);
     this.actionError.set(null);
+    this.closingShiftId.set(shift.id);
+  }
 
-    this.shiftService.closeShift(shift.id).subscribe({
-      next: () => {
-        this.isActionInFlight.set(false);
-        this.shiftService.refresh(true);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isActionInFlight.set(false);
-        this.setActionError(this.extractMessage(err, 'No se pudo cerrar el turno.'));
-      },
-    });
+  onHandoverClosed(): void {
+    this.closingShiftId.set(null);
+    this.shiftService.refresh(true);
+  }
+
+  onHandoverCancel(): void {
+    this.closingShiftId.set(null);
   }
 
   private setActionError(message: string): void {

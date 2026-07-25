@@ -54,18 +54,25 @@
   <div class="mt-3 text-sm text-slate-300">
     @switch (type) {
       @case ('EVALUATION') {
-        <dl class="grid grid-cols-3 gap-3">
+        <dl class="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div>
-            <dt class="text-xs uppercase tracking-wide text-slate-500">RSBI</dt>
+            <dt class="text-xs uppercase tracking-wide text-slate-400">RSBI</dt>
             <dd class="font-semibold text-slate-100">{{ evaluation().rsbiSnapshot | number: '1.0-2' }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-slate-500">PaFi</dt>
+            <dt class="text-xs uppercase tracking-wide text-slate-400">PaFi</dt>
             <dd class="font-semibold text-slate-100">{{ evaluation().pafiSnapshot | number: '1.0-2' }}</dd>
           </div>
           <div>
-            <dt class="text-xs uppercase tracking-wide text-slate-500">Cstat</dt>
+            <dt class="text-xs uppercase tracking-wide text-slate-400">Cstat</dt>
             <dd class="font-semibold text-slate-100">{{ evaluation().cstatSnapshot | number: '1.0-2' }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs uppercase tracking-wide text-slate-400">ΔP</dt>
+            <dd class="font-semibold" [class]="evaluation().drivingPressureBand === 'HIGH' ? 'text-red-300' : 'text-slate-100'">
+              {{ evaluation().drivingPressure | number: '1.0-0' }}
+              <span class="text-xs font-normal text-slate-500">cmH₂O</span>
+            </dd>
           </div>
         </dl>
         @if (evaluation().alertTriggered) {
@@ -73,6 +80,7 @@
             Umbral clínico superado
           </p>
         }
+        <app-consultant-insight [evaluationId]="evaluation().id" />
       }
       @case ('AIRWAY') {
         <p>
