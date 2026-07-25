@@ -1,0 +1,206 @@
+<app-shell>
+  <section id="main-content" tabindex="-1" class="mx-auto w-full max-w-5xl px-6 py-8">
+      <header class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 class="text-xl font-semibold text-slate-100">Ventiladores</h1>
+          <p class="mt-1 text-sm text-slate-400">Gestioná el inventario de ventiladores de la UCI.</p>
+        </div>
+        <button
+          type="button"
+          (click)="openPanel()"
+          class="flex min-h-11 items-center gap-2 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-cyan-50 transition-colors hover:bg-cyan-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+        >
+          Nuevo ventilador
+        </button>
+      </header>
+
+      @if (actionError()) {
+        <p role="alert" class="mb-4 rounded-md border border-red-500/70 bg-red-950/60 px-3 py-2 text-sm font-medium text-red-100">
+          {{ actionError() }}
+        </p>
+      }
+
+      <!-- Registration panel -->
+      @if (isPanelOpen()) {
+        <section
+          aria-labelledby="vent-panel-title"
+          class="mb-6 rounded-2xl border border-slate-700/70 bg-slate-900/80 p-6 shadow-xl"
+        >
+          <h2 id="vent-panel-title" class="mb-4 text-sm font-semibold text-slate-100">Nuevo ventilador</h2>
+
+          <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="space-y-4">
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div>
+                <label for="serialNumber" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Número de serie</label>
+                <input
+                  id="serialNumber"
+                  type="text"
+                  formControlName="serialNumber"
+                  autocomplete="off"
+                  aria-required="true"
+                  placeholder="Ej: TEC-2024-0001"
+                  class="min-h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 font-mono text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+                >
+                @if (form.controls.serialNumber.touched && form.controls.serialNumber.invalid) {
+                  <p role="alert" class="mt-1.5 text-xs font-medium text-red-300">El número de serie es obligatorio.</p>
+                }
+              </div>
+
+              <div>
+                <label for="brand" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Marca</label>
+                <select
+                  id="brand"
+                  formControlName="brand"
+                  class="min-h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+                >
+                  @for (brand of brands; track brand) {
+                    <option [value]="brand">{{ brand }}</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label for="modelName" class="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-400">Modelo</label>
+                <input
+                  id="modelName"
+                  type="text"
+                  formControlName="modelName"
+                  autocomplete="off"
+                  aria-required="true"
+                  placeholder="Ej: GraphNet TS+"
+                  class="min-h-11 w-full rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-sm text-slate-100 focus:border-cyan-400 focus:outline-none"
+                >
+                @if (form.controls.modelName.touched && form.controls.modelName.invalid) {
+                  <p role="alert" class="mt-1.5 text-xs font-medium text-red-300">El modelo es obligatorio.</p>
+                }
+              </div>
+            </div>
+
+            @if (submitError()) {
+              <p role="alert" class="rounded-md border border-red-500/70 bg-red-950/60 px-3 py-2 text-sm font-medium text-red-100">
+                {{ submitError() }}
+              </p>
+            }
+
+            <div class="flex flex-wrap gap-3 pt-1">
+              <button
+                type="submit"
+                [disabled]="form.invalid || isSubmitting()"
+                class="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-cyan-700 px-4 py-2 text-sm font-semibold text-cyan-50 transition-colors hover:bg-cyan-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                @if (isSubmitting()) {
+                  <span class="h-4 w-4 animate-spin rounded-full border-2 border-cyan-200/40 border-t-cyan-50" aria-hidden="true"></span>
+                  <span>Registrando…</span>
+                } @else {
+                  <span>Registrar ventilador</span>
+                }
+              </button>
+              <button
+                type="button"
+                (click)="closePanel()"
+                class="min-h-11 rounded-lg border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:border-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </section>
+      }
+
+      <!-- Inventory -->
+      <section aria-label="Inventario de ventiladores" class="overflow-hidden rounded-2xl border border-slate-700/70 bg-slate-900/80 shadow-xl">
+        @if (isLoading()) {
+          <p class="px-6 py-8 text-center text-sm text-slate-400">Cargando inventario…</p>
+        } @else if (loadError()) {
+          <div class="px-6 py-8 text-center">
+            <p role="alert" class="text-sm font-medium text-red-200">{{ loadError() }}</p>
+            <button type="button" (click)="load()" class="mt-3 min-h-9 rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-cyan-400 hover:text-cyan-300">
+              Reintentar
+            </button>
+          </div>
+        } @else if (ventilators().length === 0) {
+          <div class="px-6 py-8 text-center">
+            <p class="text-sm text-slate-400">No hay ventiladores registrados.</p>
+            <p class="mt-1 text-xs text-slate-500">Registrá el primero con "Nuevo ventilador".</p>
+          </div>
+        } @else {
+          <table class="w-full text-left text-sm">
+            <thead class="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-400">
+              <tr>
+                <th scope="col" class="px-5 py-3 font-semibold">Serie</th>
+                <th scope="col" class="px-5 py-3 font-semibold">Marca</th>
+                <th scope="col" class="px-5 py-3 font-semibold">Modelo</th>
+                <th scope="col" class="px-5 py-3 font-semibold">Estado</th>
+                <th scope="col" class="px-5 py-3 font-semibold">Alta</th>
+                <th scope="col" class="px-5 py-3 text-right font-semibold">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              @for (ventilator of ventilators(); track ventilator.id) {
+                <tr class="align-middle">
+                  <td class="px-5 py-3 font-mono text-slate-200">{{ ventilator.serialNumber }}</td>
+                  <td class="px-5 py-3 text-slate-200">{{ ventilator.brand }}</td>
+                  <td class="px-5 py-3 text-slate-200">{{ ventilator.modelName }}</td>
+                  <td class="px-5 py-3">
+                    <span
+                      class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium"
+                      [class]="status(ventilator).classes"
+                    >
+                      <span aria-hidden="true">{{ status(ventilator).shape }}</span>
+                      {{ status(ventilator).label }}
+                    </span>
+                  </td>
+                  <td class="px-5 py-3 font-mono text-xs text-slate-400">{{ ventilator.createdAt | date: 'dd/MM/yyyy' }}</td>
+                  <td class="px-5 py-3">
+                    @if (confirmingId() === ventilator.id) {
+                      <div class="flex items-center justify-end gap-2">
+                        <span class="text-xs text-slate-300">¿Eliminar?</span>
+                        <button type="button" (click)="confirmDelete(ventilator)" class="min-h-9 rounded-md border border-rose-500/50 bg-rose-950/40 px-2.5 py-1 text-xs font-semibold text-rose-200 hover:bg-rose-950/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300">
+                          Sí
+                        </button>
+                        <button type="button" (click)="cancelDelete()" class="min-h-9 rounded-md border border-slate-600 px-2.5 py-1 text-xs font-medium text-slate-200 hover:border-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300">
+                          No
+                        </button>
+                      </div>
+                    } @else if (!canManage(ventilator)) {
+                      <p class="text-right text-xs text-slate-500">Asignado a un paciente</p>
+                    } @else {
+                      <div class="flex items-center justify-end gap-2">
+                        @if (ventilator.status === 'AVAILABLE') {
+                          <button
+                            type="button"
+                            (click)="setStatus(ventilator, 'MAINTENANCE')"
+                            [disabled]="busyId() === ventilator.id"
+                            class="min-h-9 rounded-md border border-amber-500/40 px-2.5 py-1 text-xs font-medium text-amber-200 transition-colors hover:bg-amber-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            A mantenimiento
+                          </button>
+                        } @else {
+                          <button
+                            type="button"
+                            (click)="setStatus(ventilator, 'AVAILABLE')"
+                            [disabled]="busyId() === ventilator.id"
+                            class="min-h-9 rounded-md border border-emerald-500/40 px-2.5 py-1 text-xs font-medium text-emerald-200 transition-colors hover:bg-emerald-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            Habilitar
+                          </button>
+                        }
+                        <button
+                          type="button"
+                          (click)="askDelete(ventilator)"
+                          [disabled]="busyId() === ventilator.id"
+                          class="min-h-9 rounded-md border border-rose-500/40 px-2.5 py-1 text-xs font-medium text-rose-200 transition-colors hover:bg-rose-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+  </section>
+</app-shell>

@@ -40,11 +40,11 @@
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-slate-400">Estado</dt>
-            <dd class="text-slate-200">{{ p.clinicalStatus }}</dd>
+            <dd class="text-slate-200">{{ clinicalStatusLabel(p.clinicalStatus) }}</dd>
           </div>
           <div>
             <dt class="text-xs uppercase tracking-wide text-slate-400">Ingreso</dt>
-            <dd class="text-slate-200">{{ p.admissionDate }}</dd>
+            <dd class="text-slate-200">{{ p.admissionDate | date:'short' }}</dd>
           </div>
         </dl>
       }
@@ -68,7 +68,7 @@
         <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-400">Historia clínica</h2>
 
         <div class="flex items-center gap-2">
-          @if (canAssign()) {
+          @if (canAssign() && isEpisodeOpen()) {
             <button
               type="button"
               (click)="openModal('asset')"
@@ -78,6 +78,17 @@
             </button>
           }
 
+          @if (canDischarge()) {
+            <button
+              type="button"
+              (click)="openModal('discharge')"
+              class="inline-flex min-h-[36px] items-center gap-1 rounded-md border border-red-500/50 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-200 transition-colors hover:border-red-400 hover:text-red-100"
+            >
+              <span aria-hidden="true">→</span> Egresar paciente
+            </button>
+          }
+
+          @if (isEpisodeOpen()) {
           <div class="relative">
           <button
             type="button"
@@ -112,10 +123,15 @@
             </div>
           }
           </div>
+          }
         </div>
       </div>
 
-      @if (!isShiftOpen()) {
+      @if (!isEpisodeOpen()) {
+        <p class="mb-3 text-xs text-slate-500">
+          Episodio cerrado: la historia clínica es de solo lectura.
+        </p>
+      } @else if (!isShiftOpen()) {
         <p class="mb-3 text-xs text-slate-500">
           Abre un turno para registrar nuevos eventos clínicos.
         </p>
@@ -159,6 +175,15 @@
         <app-asset-assignment-modal
           [patientId]="pid"
           (assigned)="onAssetAssigned()"
+          (close)="closeModal()"
+        />
+      }
+      @if (activeModal() === 'discharge') {
+        <app-discharge-modal
+          [patientId]="pid"
+          [patientName]="patientName()"
+          [respiratoryStatus]="currentRespiratoryStatus()"
+          (discharged)="onDischarged($event)"
           (close)="closeModal()"
         />
       }

@@ -1,10 +1,11 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { PatientService } from '../core/services/patient.service';
 import { TimelineService } from '../core/services/timeline.service';
 import { ShiftService } from '../core/services/shift.service';
-import { PatientApiItem } from '../core/models/patient.model';
+import { Disposition, PatientApiItem, clinicalStatusLabel } from '../core/models/patient.model';
 import {
   AirwayEventPayload,
   RespiratoryStatus,
@@ -15,12 +16,13 @@ import { TimelineEventCard } from './timeline-event-card/timeline-event-card';
 import { AirwayEventModal } from './airway-event-modal/airway-event-modal';
 import { SbtModal } from './sbt-modal/sbt-modal';
 import { AssetAssignmentModal } from './asset-assignment-modal/asset-assignment-modal';
+import { DischargeModal } from './discharge-modal/discharge-modal';
 import { AppShell } from '../dashboard/app-shell/app-shell';
 import { AuthService } from '../core/auth/auth.service';
 import { AssetService } from '../core/services/asset.service';
 import { ActiveAssignment } from '../core/models/asset.model';
 
-type ProcedureModal = 'airway' | 'sbt' | 'asset' | null;
+type ProcedureModal = 'airway' | 'sbt' | 'asset' | 'discharge' | null;
 
 /**
  * Patient detail view (PNMC-96): route /patients/:id. Fetches the patient header
@@ -34,12 +36,15 @@ type ProcedureModal = 'airway' | 'sbt' | 'asset' | null;
  */
 @Component({
   selector: 'app-patient-detail',
-  imports: [RouterLink, TimelineEventCard, AirwayEventModal, SbtModal, AssetAssignmentModal, AppShell],
+  imports: [RouterLink, DatePipe, TimelineEventCard, AirwayEventModal, SbtModal, AssetAssignmentModal, DischargeModal, AppShell],
   templateUrl: './patient-detail.html',
   styleUrl: './patient-detail.css',
   host: { class: 'block' },
 })
 export class PatientDetail implements OnInit {
+  /** Exposed for the template: shared ClinicalStatus → Spanish label mapping. */
+  readonly clinicalStatusLabel = clinicalStatusLabel;
+
   private readonly route = inject(ActivatedRoute);
   private readonly patientService = inject(PatientService);
   private readonly timelineService = inject(TimelineService);
@@ -148,6 +153,29 @@ export class PatientDetail implements OnInit {
   closeModal(): void {
     this.activeModal.set(null);
   }
+
+  /**
+   * After a discharge the episode is closed: the header status, the freed bed
+   * and the released ventilator all change, so reload rather than patch signals
+   * piecemeal.
+   */
+  onDischarged(_disposition: Disposition): void {
+    const id = this.patientId();
+    if (id) {
+      this.load(id);
+      this.loadActiveAssignment(id);
+    }
+  }
+
+  /**
+   * A closed episode (discharged / transferred / deceased) is read-only: the
+   * server rejects any clinical write against it with a 409, so offering the
+   * controls would only lead to a form that cannot succeed.
+   */
+  readonly isEpisodeOpen = computed(() => this.patient()?.clinicalStatus === 'ADMITTED');
+
+  /** An episode that is no longer ADMITTED cannot be discharged again. */
+  readonly canDischarge = computed(() => this.isEpisodeOpen() && this.canAssign());
 
   private loadActiveAssignment(id: string): void {
     this.assetService.getActive(id).subscribe({

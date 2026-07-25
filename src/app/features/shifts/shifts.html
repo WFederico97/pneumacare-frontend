@@ -1,0 +1,136 @@
+<app-shell>
+  <section id="main-content" tabindex="-1" class="mx-auto w-full max-w-5xl px-6 py-8">
+    <header class="mb-6">
+      <h1 class="text-xl font-semibold text-slate-100">Turnos</h1>
+      <p class="mt-1 text-sm text-slate-400">
+        Historial de guardias de la UCI con su duración, actividad clínica y novedades.
+      </p>
+    </header>
+
+    @if (isLoading()) {
+      <p class="rounded-2xl border border-slate-700/70 bg-slate-900/80 px-6 py-10 text-center text-sm text-slate-400">
+        Cargando turnos…
+      </p>
+    } @else if (loadError()) {
+      <div class="rounded-2xl border border-slate-700/70 bg-slate-900/80 px-6 py-10 text-center">
+        <p role="alert" class="text-sm font-medium text-red-200">{{ loadError() }}</p>
+        <button type="button" (click)="load()" class="mt-3 rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-medium text-slate-200 hover:border-cyan-400 hover:text-cyan-300">
+          Reintentar
+        </button>
+      </div>
+    } @else if (shifts().length === 0) {
+      <p class="rounded-2xl border border-slate-700/70 bg-slate-900/80 px-6 py-10 text-center text-sm text-slate-400">
+        Esta UCI todavía no tiene turnos registrados.
+      </p>
+    } @else {
+      <div class="mb-4 grid gap-4 sm:grid-cols-3" role="list">
+        <div role="listitem" class="rounded-2xl border border-slate-700/70 bg-slate-900/80 p-4 text-center">
+          <span class="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">Turno actual</span>
+          <b class="mt-1 block font-mono text-2xl font-bold" [class]="openShift() ? 'text-emerald-300' : 'text-slate-500'">
+            {{ openShift() ? 'Abierto' : 'Cerrado' }}
+          </b>
+        </div>
+        <div role="listitem" class="rounded-2xl border border-slate-700/70 bg-slate-900/80 p-4 text-center">
+          <span class="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">Turnos cerrados</span>
+          <b class="mt-1 block font-mono text-2xl font-bold text-cyan-300">{{ closedCount() }}</b>
+        </div>
+        <div role="listitem" class="rounded-2xl border border-slate-700/70 bg-slate-900/80 p-4 text-center">
+          <span class="block text-[11px] font-semibold uppercase tracking-wide text-slate-400">Total registrados</span>
+          <b class="mt-1 block font-mono text-2xl font-bold text-cyan-300">{{ shifts().length }}</b>
+        </div>
+      </div>
+
+      <div class="overflow-hidden rounded-2xl border border-slate-700/70 bg-slate-900/70 shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <caption class="sr-only">Historial de turnos de la UCI, del más reciente al más antiguo</caption>
+            <thead class="border-b border-slate-700/60 text-[10px] uppercase tracking-wide text-slate-500">
+              <tr>
+                <th scope="col" class="px-4 py-2.5 font-semibold">Estado</th>
+                <th scope="col" class="px-4 py-2.5 font-semibold">Inicio</th>
+                <th scope="col" class="px-4 py-2.5 font-semibold">Fin</th>
+                <th scope="col" class="px-4 py-2.5 text-right font-semibold">Duración</th>
+                <th scope="col" class="px-4 py-2.5 text-right font-semibold">Evaluac.</th>
+                <th scope="col" class="px-4 py-2.5 text-right font-semibold">Vía aérea</th>
+                <th scope="col" class="px-4 py-2.5 text-right font-semibold">SBT</th>
+                <th scope="col" class="px-4 py-2.5 text-right font-semibold">Novedades</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/70">
+              @for (shift of shifts(); track shift.id) {
+                <tr
+                  (click)="select(shift.id)"
+                  (keydown.enter)="select(shift.id)"
+                  (keydown.space)="select(shift.id)"
+                  tabindex="0"
+                  [attr.aria-current]="selectedId() === shift.id ? 'true' : null"
+                  [attr.aria-label]="'Turno iniciado el ' + (shift.startedAt | date: 'short')"
+                  class="cursor-pointer transition-colors hover:bg-slate-800/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-300"
+                  [class.bg-slate-800]="selectedId() === shift.id"
+                >
+                  <td class="px-4 py-3">
+                    @if (shift.status === 'OPEN') {
+                      <span class="inline-flex items-center gap-1 rounded-full border border-emerald-400/40 bg-emerald-950/50 px-2 py-0.5 text-xs font-bold text-emerald-200">
+                        ● Abierto
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1 rounded-full border border-slate-600 bg-slate-900 px-2 py-0.5 text-xs font-medium text-slate-400">
+                        Cerrado
+                      </span>
+                    }
+                  </td>
+                  <td class="px-4 py-3 text-slate-300">{{ shift.startedAt | date: 'short' }}</td>
+                  <td class="px-4 py-3 text-slate-300">
+                    {{ shift.endTime ? (shift.endTime | date: 'short') : '—' }}
+                  </td>
+                  <td class="px-4 py-3 text-right font-mono text-slate-300">{{ formatDuration(shift.durationMinutes) }}</td>
+                  <td class="px-4 py-3 text-right font-mono text-slate-300">{{ shift.evaluationCount }}</td>
+                  <td class="px-4 py-3 text-right font-mono text-slate-300">{{ shift.airwayEventCount }}</td>
+                  <td class="px-4 py-3 text-right font-mono text-slate-300">{{ shift.sbtCount }}</td>
+                  <td class="px-4 py-3 text-right font-mono text-slate-300">{{ shift.handoverCount }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      @if (selected(); as shift) {
+        <section aria-labelledby="shift-detail-title" class="mt-6 rounded-2xl border border-slate-700/70 bg-slate-900/80 p-5 shadow-xl">
+          <h2 id="shift-detail-title" class="text-sm font-semibold text-slate-100">
+            Detalle del turno · {{ shift.startedAt | date: 'medium' }}
+          </h2>
+          <p class="mt-1 text-xs text-slate-400">
+            {{ formatDuration(shift.durationMinutes) }}
+            @if (shift.status === 'OPEN') { <span class="text-emerald-300">(en curso)</span> }
+            · {{ totalActivity(shift) }} registros clínicos
+          </p>
+
+          <h3 class="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-400">Novedades</h3>
+          @if (handoversLoading()) {
+            <p class="mt-2 text-sm text-slate-400">Cargando novedades…</p>
+          } @else if (handoversError()) {
+            <p role="alert" class="mt-2 text-sm text-red-200">{{ handoversError() }}</p>
+          } @else if (handovers().length === 0) {
+            <p class="mt-2 text-sm text-slate-500">
+              @if (shift.status === 'OPEN') {
+                Todavía no se registraron novedades en este turno.
+              } @else {
+                Este turno se cerró sin novedades registradas.
+              }
+            </p>
+          } @else {
+            <ul class="mt-2 space-y-2">
+              @for (note of handovers(); track note.id) {
+                <li class="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2">
+                  <p class="whitespace-pre-line text-sm text-slate-200">{{ note.notesContent }}</p>
+                  <p class="mt-1 text-xs text-slate-500">{{ note.createdAt | date: 'short' }}</p>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+    }
+  </section>
+</app-shell>

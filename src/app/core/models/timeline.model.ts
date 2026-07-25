@@ -5,7 +5,7 @@ import { EvaluationResult } from './evaluation.model';
 export type TimelineEventType = 'EVALUATION' | 'AIRWAY' | 'SBT';
 
 /** Airway event kinds (mirrors backend AirwayEventType). */
-export type AirwayEventType = 'INTUBATION' | 'EXTUBATION' | 'TRACHEOSTOMY';
+export type AirwayEventType = 'INTUBATION' | 'EXTUBATION' | 'TRACHEOSTOMY' | 'DECANNULATION';
 
 /** Patient airway/respiratory state (mirrors backend RespiratoryStatus). */
 export type RespiratoryStatus = 'SPONTANEOUS' | 'INTUBATED' | 'TRACHEOSTOMY';

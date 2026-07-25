@@ -4,9 +4,15 @@
       <h2 class="text-base font-semibold tracking-tight text-slate-100">Acciones rápidas</h2>
       <p class="text-xs text-slate-400">Calculadoras para la cama ocupada</p>
     </div>
-    <span class="rounded-full border border-red-500/40 bg-red-500/15 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-red-300">
-      <span aria-hidden="true">● </span>Atención prioritaria
-    </span>
+    @if (hasActiveAlert()) {
+      <span
+        role="status"
+        aria-live="polite"
+        class="rounded-full border border-red-500/40 bg-red-500/15 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-red-300"
+      >
+        <span aria-hidden="true">● </span>Atención prioritaria
+      </span>
+    }
   </div>
 
   <div class="mt-5 space-y-4">
@@ -30,7 +36,12 @@
 
     <div class="rounded-xl border border-slate-700 bg-slate-950/40 p-4">
       <p class="mb-3 text-xs uppercase tracking-wide text-slate-400">Formulario ventilatorio</p>
-      <app-ventilator-form [selectedBedId]="selectedBedId()" [selectedBedNumber]="selectedBedNumber()" [patientId]="patientId()" />
+      <app-ventilator-form
+        [selectedBedId]="selectedBedId()"
+        [selectedBedNumber]="selectedBedNumber()"
+        [patientId]="patientId()"
+        (evaluationSaved)="onEvaluationSaved($event)"
+      />
     </div>
   </div>
 </section>

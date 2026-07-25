@@ -3,8 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import {
   ActiveShiftApiResponse,
+  Handover,
+  HandoverApiResponse,
+  HandoversApiResponse,
   Shift,
   ShiftApiResponse,
+  ShiftHistoryApiResponse,
+  ShiftSummary,
 } from '../models/shift.model';
 
 /**
@@ -71,10 +76,10 @@ export class ShiftService {
       });
   }
 
-  /** POST /api/v1/shifts — opens a shift for the given ICU. */
-  openShift(icuId: string): Observable<Shift> {
+  /** POST /api/v1/shifts — opens a shift for the caller's ICU (derived server-side from the session). */
+  openShift(): Observable<Shift> {
     return this.http
-      .post<ShiftApiResponse>('/api/v1/shifts', { icuId })
+      .post<ShiftApiResponse>('/api/v1/shifts', {})
       .pipe(map((response) => response.data));
   }
 
@@ -83,5 +88,26 @@ export class ShiftService {
     return this.http
       .patch<ShiftApiResponse>(`/api/v1/shifts/${shiftId}/close`, {})
       .pipe(map((response) => response.data));
+  }
+
+  /** POST /api/v1/shifts/{id}/handovers — records a handover note (must be an OPEN shift). */
+  createHandover(shiftId: string, notesContent: string): Observable<Handover> {
+    return this.http
+      .post<HandoverApiResponse>(`/api/v1/shifts/${shiftId}/handovers`, { notesContent })
+      .pipe(map((response) => response.data));
+  }
+
+  /** GET /api/v1/shifts — the session ICU's shift history, newest first. */
+  getHistory(): Observable<ShiftSummary[]> {
+    return this.http
+      .get<ShiftHistoryApiResponse>('/api/v1/shifts')
+      .pipe(map((response) => response.data ?? []));
+  }
+
+  /** GET /api/v1/shifts/{id}/handovers — a shift's handover notes, newest first. */
+  getHandovers(shiftId: string): Observable<Handover[]> {
+    return this.http
+      .get<HandoversApiResponse>(`/api/v1/shifts/${shiftId}/handovers`)
+      .pipe(map((response) => response.data ?? []));
   }
 }

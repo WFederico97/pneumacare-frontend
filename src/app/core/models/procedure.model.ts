@@ -2,6 +2,7 @@ import { ApiResponse } from './health.model';
 import {
   AirwayEventPayload,
   AirwayEventType,
+  RespiratoryStatus,
   SbtPayload,
   ToleranceResult,
 } from './timeline.model';
@@ -23,3 +24,18 @@ export interface CreateSbtRequest {
 
 export type AirwayEventApiResponse = ApiResponse<AirwayEventPayload>;
 export type SbtApiResponse = ApiResponse<SbtPayload>;
+
+/**
+ * One legal airway transition as published by the server
+ * (GET /api/v1/procedures/airway/transitions). The client renders the state
+ * machine from this rather than declaring its own copy — the drift that once
+ * left DECANNULATION unreachable in the UI.
+ */
+export interface AirwayTransition {
+  eventType: AirwayEventType;
+  requiredCurrentStatus: RespiratoryStatus;
+  resultingStatus: RespiratoryStatus;
+  label: string;
+}
+
+export type AirwayTransitionsApiResponse = ApiResponse<AirwayTransition[]>;

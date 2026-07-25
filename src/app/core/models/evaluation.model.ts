@@ -3,11 +3,16 @@ import { ApiResponse } from './health.model';
 export type RsbiInterpretation = 'FAVORABLE' | 'BORDERLINE' | 'UNFAVORABLE';
 export type PafiClassification = 'NORMAL' | 'AT_RISK' | 'MILD_ARDS' | 'MODERATE_ARDS' | 'SEVERE_ARDS';
 export type CstatInterpretation = 'HIGH' | 'NORMAL' | 'LOW';
+export type DrivingPressureBand = 'PROTECTIVE' | 'HIGH';
 export type VentilatorBrand = 'TECME' | 'NEUMOVENT';
 
+/**
+ * Ventilator reading payload. Deliberately carries no `shiftId`: the backend
+ * resolves the patient's OPEN shift server-side, so a reading can never be
+ * attributed to a closed shift or another ICU's shift.
+ */
 export interface CreateEvaluationRequest {
   patientId: string;
-  shiftId: string;
   physicalVentilatorId: string;
   brand: VentilatorBrand;
   f: number;
@@ -37,6 +42,8 @@ export interface EvaluationResult {
   pafiClassification: PafiClassification;
   cstatSnapshot: number;
   cstatInterpretation: CstatInterpretation;
+  drivingPressure: number;
+  drivingPressureBand: DrivingPressureBand;
   alertTriggered: boolean;
   createdBy: string;
 }
